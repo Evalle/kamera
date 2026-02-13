@@ -1,0 +1,36 @@
+name: KubeDash
+options:
+  bundleIdPrefix: com.kubedash
+  deploymentTarget:
+    macOS: "14.0"
+  xcodeVersion: "15.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+packages:
+  Yams:
+    url: https://github.com/jpsim/Yams
+    from: "5.0.0"
+targets:
+  KubeDash:
+    type: application
+    platform: macOS
+    sources:
+      - Sources/KubeDash
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.kubedash.app
+        INFOPLIST_FILE: Support/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Support/KubeDash.entitlements
+        CODE_SIGN_STYLE: Automatic
+        MACOSX_DEPLOYMENT_TARGET: "14.0"
+    dependencies:
+      - package: Yams
+  KubeDashTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - Tests/KubeDashTests
+    dependencies:
+      - target: KubeDash
