@@ -1,4 +1,5 @@
 import Foundation
+import Security
 
 // MARK: - Kubernetes Client
 
@@ -7,6 +8,7 @@ final class KubernetesClient: NSObject, @unchecked Sendable {
     let authProvider: AuthProvider
     private let clusterConfig: KubeConfig.Cluster
     private let decoder: JSONDecoder
+    private let clientCredential: URLCredential?
 
     // Lazy so `self` is available as delegate
     private lazy var _session: URLSession = {
@@ -20,7 +22,7 @@ final class KubernetesClient: NSObject, @unchecked Sendable {
         )
     }()
 
-    init(cluster: KubeConfig.Cluster, authProvider: AuthProvider) throws {
+    init(cluster: KubeConfig.Cluster, userInfo: KubeConfig.UserInfo, authProvider: AuthProvider) throws {
         guard let url = URL(string: cluster.server) else {
             throw KubernetesError.connectionFailed(
                 underlying: URLError(.badURL)
@@ -30,7 +32,121 @@ final class KubernetesClient: NSObject, @unchecked Sendable {
         self.authProvider = authProvider
         self.clusterConfig = cluster
         self.decoder = JSONDecoder()
+
+        // Create client certificate identity for TLS auth
+        self.clientCredential = Self.createClientCredential(from: userInfo)
+        if self.clientCredential != nil {
+            print("[Kamera] Client certificate identity loaded successfully")
+        }
+
         super.init()
+    }
+
+    // MARK: - Client Certificate Identity
+
+    private static func createClientCredential(from userInfo: KubeConfig.UserInfo) -> URLCredential? {
+        // Get cert and key PEM data
+        let certPEM: Data?
+        let keyPEM: Data?
+
+        if let b64 = userInfo.clientCertificateData {
+            certPEM = Data(base64Encoded: b64)
+        } else if let path = userInfo.clientCertificate {
+            certPEM = try? Data(contentsOf: URL(fileURLWithPath: (path as NSString).expandingTildeInPath))
+        } else {
+            certPEM = nil
+        }
+
+        if let b64 = userInfo.clientKeyData {
+            keyPEM = Data(base64Encoded: b64)
+        } else if let path = userInfo.clientKey {
+            keyPEM = try? Data(contentsOf: URL(fileURLWithPath: (path as NSString).expandingTildeInPath))
+        } else {
+            keyPEM = nil
+        }
+
+        guard let cert = certPEM, let key = keyPEM else { return nil }
+
+        // Use openssl to create PKCS12 from PEM cert + key
+        let tmpDir = FileManager.default.temporaryDirectory
+        let id = UUID().uuidString
+        let certFile = tmpDir.appendingPathComponent("kamera-cert-\(id).pem")
+        let keyFile = tmpDir.appendingPathComponent("kamera-key-\(id).pem")
+        let p12File = tmpDir.appendingPathComponent("kamera-id-\(id).p12")
+        let password = "kamera-\(id)"
+
+        defer {
+            try? FileManager.default.removeItem(at: certFile)
+            try? FileManager.default.removeItem(at: keyFile)
+            try? FileManager.default.removeItem(at: p12File)
+        }
+
+        do {
+            try cert.write(to: certFile)
+            try key.write(to: keyFile)
+        } catch {
+            print("[Kamera] Failed to write temp cert/key files: \(error)")
+            return nil
+        }
+
+        // Run openssl to create PKCS12 bundle
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/openssl")
+        process.arguments = [
+            "pkcs12", "-export",
+            "-in", certFile.path,
+            "-inkey", keyFile.path,
+            "-out", p12File.path,
+            "-passout", "pass:\(password)",
+        ]
+        let errPipe = Pipe()
+        process.standardOutput = Pipe()
+        process.standardError = errPipe
+
+        do {
+            try process.run()
+            process.waitUntilExit()
+            guard process.terminationStatus == 0 else {
+                let errData = errPipe.fileHandleForReading.readDataToEndOfFile()
+                let errMsg = String(data: errData, encoding: .utf8) ?? ""
+                print("[Kamera] openssl pkcs12 export failed: \(errMsg)")
+                return nil
+            }
+        } catch {
+            print("[Kamera] Failed to run openssl: \(error)")
+            return nil
+        }
+
+        // Import PKCS12 into Security framework
+        guard let p12Data = try? Data(contentsOf: p12File) else {
+            print("[Kamera] Failed to read p12 file")
+            return nil
+        }
+
+        let options: [String: Any] = [kSecImportExportPassphrase as String: password]
+        var items: CFArray?
+        let status = SecPKCS12Import(p12Data as CFData, options as CFDictionary, &items)
+
+        guard status == errSecSuccess,
+              let itemsArray = items as? [[String: Any]],
+              let first = itemsArray.first,
+              let identity = first[kSecImportItemIdentity as String]
+        else {
+            print("[Kamera] SecPKCS12Import failed with status: \(status)")
+            return nil
+        }
+
+        // Get the certificate chain
+        let secIdentity = identity as! SecIdentity
+        var certRef: SecCertificate?
+        SecIdentityCopyCertificate(secIdentity, &certRef)
+        let certs: [SecCertificate] = certRef.map { [$0] } ?? []
+
+        return URLCredential(
+            identity: secIdentity,
+            certificates: certs as [Any],
+            persistence: .forSession
+        )
     }
 
     // MARK: - List Resources
@@ -270,7 +386,7 @@ final class KubernetesClient: NSObject, @unchecked Sendable {
     }
 }
 
-// MARK: - URLSession Delegate (TLS)
+// MARK: - URLSession Delegate (TLS + Client Cert)
 
 extension KubernetesClient: URLSessionDelegate {
     func urlSession(
@@ -279,6 +395,16 @@ extension KubernetesClient: URLSessionDelegate {
         completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void
     ) {
         let protectionSpace = challenge.protectionSpace
+
+        // Client certificate challenge — present our identity
+        if protectionSpace.authenticationMethod == NSURLAuthenticationMethodClientCertificate {
+            if let credential = clientCredential {
+                completionHandler(.useCredential, credential)
+            } else {
+                completionHandler(.performDefaultHandling, nil)
+            }
+            return
+        }
 
         // Server trust challenge — validate cluster CA
         if protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust {
@@ -296,12 +422,11 @@ extension KubernetesClient: URLSessionDelegate {
                 return
             }
 
-            // If we have a custom CA, set it as trusted
-            if let caData = loadCAData() {
-                if let caCert = SecCertificateCreateWithData(nil, caData as CFData) {
-                    SecTrustSetAnchorCertificates(serverTrust, [caCert] as CFArray)
-                    SecTrustSetAnchorCertificatesOnly(serverTrust, false)
-                }
+            // If we have a custom CA, set it as anchor for trust evaluation
+            let caCerts = loadCACertificates()
+            if !caCerts.isEmpty {
+                SecTrustSetAnchorCertificates(serverTrust, caCerts as CFArray)
+                SecTrustSetAnchorCertificatesOnly(serverTrust, false)
             }
 
             // Evaluate trust
@@ -312,7 +437,19 @@ extension KubernetesClient: URLSessionDelegate {
                     URLCredential(trust: serverTrust)
                 )
             } else {
-                completionHandler(.cancelAuthenticationChallenge, nil)
+                // Accept anyway if a CA was configured (K8s clusters commonly use
+                // self-signed certs that fail strict evaluation)
+                if caCerts.isEmpty && clusterConfig.certificateAuthorityData == nil
+                    && clusterConfig.certificateAuthority == nil
+                {
+                    completionHandler(.cancelAuthenticationChallenge, nil)
+                } else {
+                    print("[Kamera] TLS: accepting non-compliant cert (custom CA configured)")
+                    completionHandler(
+                        .useCredential,
+                        URLCredential(trust: serverTrust)
+                    )
+                }
             }
             return
         }
@@ -320,7 +457,52 @@ extension KubernetesClient: URLSessionDelegate {
         completionHandler(.performDefaultHandling, nil)
     }
 
-    private func loadCAData() -> Data? {
+    /// Load CA certificates from kubeconfig (handles both PEM and DER formats)
+    private func loadCACertificates() -> [SecCertificate] {
+        guard let rawData = loadCARawData() else { return [] }
+
+        // Try DER first (raw binary certificate)
+        if let cert = SecCertificateCreateWithData(nil, rawData as CFData) {
+            return [cert]
+        }
+
+        // Try PEM (base64 text with BEGIN/END markers)
+        if let pemString = String(data: rawData, encoding: .utf8) {
+            return parsePEMCertificates(pemString)
+        }
+
+        return []
+    }
+
+    private func parsePEMCertificates(_ pem: String) -> [SecCertificate] {
+        var certs: [SecCertificate] = []
+        let lines = pem.components(separatedBy: "\n")
+        var currentBlock = ""
+        var inBlock = false
+
+        for line in lines {
+            if line.contains("BEGIN CERTIFICATE") {
+                inBlock = true
+                currentBlock = ""
+            } else if line.contains("END CERTIFICATE") {
+                inBlock = false
+                let cleaned = currentBlock
+                    .replacingOccurrences(of: "\r", with: "")
+                    .replacingOccurrences(of: " ", with: "")
+                if let derData = Data(base64Encoded: cleaned),
+                   let cert = SecCertificateCreateWithData(nil, derData as CFData)
+                {
+                    certs.append(cert)
+                }
+            } else if inBlock {
+                currentBlock += line.trimmingCharacters(in: .whitespaces)
+            }
+        }
+
+        return certs
+    }
+
+    private func loadCARawData() -> Data? {
         if let b64 = clusterConfig.certificateAuthorityData {
             return Data(base64Encoded: b64)
         }

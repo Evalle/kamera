@@ -2,21 +2,21 @@
 import PackageDescription
 
 let package = Package(
-    name: "KubeDash",
+    name: "Kamera",
     platforms: [.macOS(.v14)],
     dependencies: [
         .package(url: "https://github.com/jpsim/Yams.git", from: "5.0.0"),
     ],
     targets: [
         .executableTarget(
-            name: "KubeDash",
+            name: "Kamera",
             dependencies: ["Yams"],
-            path: "Sources/KubeDash"
+            path: "Sources/Kamera"
         ),
         .testTarget(
-            name: "KubeDashTests",
-            dependencies: ["KubeDash"],
-            path: "Tests/KubeDashTests"
+            name: "KameraTests",
+            dependencies: ["Kamera"],
+            path: "Tests/KameraTests"
         ),
     ]
 )

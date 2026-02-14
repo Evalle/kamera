@@ -28,14 +28,18 @@ struct ResourceDetailView: View {
     var body: some View {
         Group {
             switch viewModel.selectedResource {
-            case .pods:
-                PodListView()
-            case .deployments:
-                DeploymentListView()
-            case .services:
-                ServiceListView()
-            case .nodes:
-                NodeListView()
+            case .pods: PodListView()
+            case .deployments: DeploymentListView()
+            case .statefulSets: StatefulSetListView()
+            case .daemonSets: DaemonSetListView()
+            case .replicaSets: ReplicaSetListView()
+            case .jobs: JobListView()
+            case .cronJobs: CronJobListView()
+            case .services: ServiceListView()
+            case .ingresses: IngressListView()
+            case .configMaps: ConfigMapListView()
+            case .secrets: SecretListView()
+            case .nodes: NodeListView()
             }
         }
         .overlay {

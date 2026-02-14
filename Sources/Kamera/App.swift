@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct KubeDashApp: App {
+struct KameraApp: App {
     @State private var viewModel = ClusterViewModel()
 
     var body: some Scene {

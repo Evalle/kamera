@@ -1,0 +1,365 @@
+import Foundation
+import SwiftUI
+
+// MARK: - ClusterViewModel
+
+@MainActor
+@Observable
+final class ClusterViewModel {
+    // Connection state
+    var kubeConfig: KubeConfig?
+    var selectedContext: String?
+    var selectedNamespace: String = "default"
+    var availableNamespaces: [String] = ["default"]
+    var isConnected = false
+    var connectionError: String?
+
+    // Resource data
+    var pods: [Pod] = []
+    var deployments: [Deployment] = []
+    var statefulSets: [StatefulSet] = []
+    var daemonSets: [DaemonSet] = []
+    var replicaSets: [ReplicaSet] = []
+    var jobs: [Job] = []
+    var cronJobs: [CronJob] = []
+    var services: [Service] = []
+    var ingresses: [Ingress] = []
+    var configMaps: [ConfigMap] = []
+    var secrets: [Secret] = []
+    var nodes: [Node] = []
+
+    // UI state
+    var selectedResource: ResourceKind = .pods
+    var isLoading = false
+    var resourceError: String?
+
+    // Client
+    private var client: KubernetesClient?
+    private var watchTask: Task<Void, Never>?
+    private var connectTask: Task<Void, Never>?
+
+    enum ResourceKind: String, CaseIterable, Identifiable {
+        case pods = "Pods"
+        case deployments = "Deployments"
+        case statefulSets = "StatefulSets"
+        case daemonSets = "DaemonSets"
+        case replicaSets = "ReplicaSets"
+        case jobs = "Jobs"
+        case cronJobs = "CronJobs"
+        case services = "Services"
+        case ingresses = "Ingresses"
+        case configMaps = "ConfigMaps"
+        case secrets = "Secrets"
+        case nodes = "Nodes"
+
+        var id: String { rawValue }
+
+        var systemImage: String {
+            switch self {
+            case .pods: return "cube"
+            case .deployments: return "arrow.triangle.2.circlepath"
+            case .statefulSets: return "square.stack.3d.up"
+            case .daemonSets: return "circle.grid.3x3"
+            case .replicaSets: return "square.on.square"
+            case .jobs: return "gearshape"
+            case .cronJobs: return "clock.arrow.2.circlepath"
+            case .services: return "network"
+            case .ingresses: return "arrow.right.arrow.left"
+            case .configMaps: return "doc.text"
+            case .secrets: return "lock"
+            case .nodes: return "server.rack"
+            }
+        }
+    }
+
+    // MARK: - Load KubeConfig
+
+    func loadConfig() {
+        do {
+            let config = try KubeConfig.load()
+            self.kubeConfig = config
+            self.connectionError = nil
+
+            // Auto-select current context
+            if let current = config.currentContext {
+                connectToContext(current)
+            }
+        } catch {
+            self.connectionError = "Failed to load kubeconfig: \(error.localizedDescription)"
+        }
+    }
+
+    // MARK: - Context Switching
+
+    func connectToContext(_ name: String) {
+        guard let config = kubeConfig else { return }
+        guard name != selectedContext || !isConnected else { return }
+
+        // Cancel any previous connection setup
+        connectTask?.cancel()
+        watchTask?.cancel()
+
+        selectedContext = name
+        selectedNamespace = config.namespace(forContext: name)
+
+        // Create client for this context
+        guard let cluster = config.cluster(forContext: name),
+              let userInfo = config.user(forContext: name)
+        else {
+            connectionError = "Invalid context configuration for '\(name)'"
+            isConnected = false
+            return
+        }
+
+        let auth = AuthProvider(userInfo: userInfo)
+        do {
+            let newClient = try KubernetesClient(cluster: cluster, userInfo: userInfo, authProvider: auth)
+            client = newClient
+            isConnected = true
+            connectionError = nil
+
+            // Load namespaces and resources — capture client locally to avoid races
+            connectTask = Task {
+                await loadNamespaces(using: newClient)
+                guard !Task.isCancelled else { return }
+                await refreshResources(using: newClient)
+            }
+        } catch {
+            connectionError = "Failed to connect: \(error.localizedDescription)"
+            isConnected = false
+        }
+    }
+
+    // MARK: - Namespace Switching
+
+    func selectNamespace(_ namespace: String) {
+        guard namespace != selectedNamespace else { return }
+        selectedNamespace = namespace
+        if let client = client {
+            Task {
+                await refreshResources(using: client)
+            }
+        }
+    }
+
+    // MARK: - Fetch Resources
+
+    func refreshResources() async {
+        guard let client = client else { return }
+        await refreshResources(using: client)
+    }
+
+    private func refreshResources(using client: KubernetesClient) async {
+        isLoading = true
+        resourceError = nil
+
+        let ns = selectedNamespace
+
+        do {
+            // Fetch all resource types in parallel
+            async let fPods = client.list(Pod.self, namespace: ns)
+            async let fDeployments = client.list(Deployment.self, namespace: ns)
+            async let fStatefulSets = client.list(StatefulSet.self, namespace: ns)
+            async let fDaemonSets = client.list(DaemonSet.self, namespace: ns)
+            async let fReplicaSets = client.list(ReplicaSet.self, namespace: ns)
+            async let fJobs = client.list(Job.self, namespace: ns)
+            async let fCronJobs = client.list(CronJob.self, namespace: ns)
+            async let fServices = client.list(Service.self, namespace: ns)
+            async let fIngresses = client.list(Ingress.self, namespace: ns)
+            async let fConfigMaps = client.list(ConfigMap.self, namespace: ns)
+            async let fSecrets = client.list(Secret.self, namespace: ns)
+            async let fNodes = client.list(Node.self)
+
+            let results = try await (
+                fPods, fDeployments, fStatefulSets, fDaemonSets,
+                fReplicaSets, fJobs, fCronJobs, fServices,
+                fIngresses, fConfigMaps, fSecrets, fNodes
+            )
+
+            guard !Task.isCancelled else { return }
+
+            pods = results.0
+            deployments = results.1
+            statefulSets = results.2
+            daemonSets = results.3
+            replicaSets = results.4
+            jobs = results.5
+            cronJobs = results.6
+            services = results.7
+            ingresses = results.8
+            configMaps = results.9
+            secrets = results.10
+            nodes = results.11
+            isLoading = false
+        } catch {
+            guard !Task.isCancelled else { return }
+            resourceError = error.localizedDescription
+            isLoading = false
+        }
+    }
+
+    // MARK: - Watch Pods
+
+    func startWatchingPods() {
+        guard let client = client else { return }
+
+        watchTask?.cancel()
+        watchTask = Task {
+            do {
+                for try await event in client.watch(Pod.self, namespace: selectedNamespace) {
+                    await handlePodEvent(event)
+                }
+            } catch {
+                if !Task.isCancelled {
+                    resourceError = "Watch disconnected: \(error.localizedDescription)"
+                }
+            }
+        }
+    }
+
+    func stopWatching() {
+        watchTask?.cancel()
+        watchTask = nil
+    }
+
+    private func handlePodEvent(_ event: WatchEvent<Pod>) async {
+        switch event.type {
+        case .added:
+            if !pods.contains(where: { $0.id == event.object.id }) {
+                pods.append(event.object)
+            }
+        case .modified:
+            if let index = pods.firstIndex(where: { $0.id == event.object.id }) {
+                pods[index] = event.object
+            }
+        case .deleted:
+            pods.removeAll { $0.id == event.object.id }
+        case .error:
+            break
+        }
+    }
+
+    // MARK: - Fetch Namespaces
+
+    private func loadNamespaces(using client: KubernetesClient) async {
+        print("[Kamera] Loading namespaces...")
+
+        // Try K8s API first
+        do {
+            let namespaces = try await client.namespaces()
+            guard !Task.isCancelled else {
+                print("[Kamera] Namespace fetch cancelled")
+                return
+            }
+            print("[Kamera] K8s API returned \(namespaces.count) namespaces: \(namespaces)")
+            availableNamespaces = namespaces.isEmpty ? ["default"] : namespaces
+            if !availableNamespaces.contains(selectedNamespace) {
+                selectedNamespace = availableNamespaces.first ?? "default"
+            }
+            return
+        } catch {
+            guard !Task.isCancelled else {
+                print("[Kamera] Namespace fetch cancelled after error")
+                return
+            }
+            print("[Kamera] K8s API namespace fetch failed: \(error)")
+        }
+
+        // Fallback: try kubectl
+        print("[Kamera] Trying kubectl fallback...")
+        let ctx = selectedContext
+        let kubectlResult = await Task.detached {
+            Self.fetchNamespacesViaKubectl(context: ctx)
+        }.value
+        print("[Kamera] kubectl returned \(kubectlResult.count) namespaces: \(kubectlResult)")
+
+        if !kubectlResult.isEmpty {
+            availableNamespaces = kubectlResult
+        } else {
+            let fallback = Set(["default", selectedNamespace])
+            availableNamespaces = fallback.sorted()
+        }
+
+        if !availableNamespaces.contains(selectedNamespace) {
+            selectedNamespace = availableNamespaces.first ?? "default"
+        }
+        print("[Kamera] Final namespace list: \(availableNamespaces)")
+    }
+
+    // Runs off MainActor to avoid blocking UI
+    private nonisolated static func fetchNamespacesViaKubectl(context: String?) -> [String] {
+        guard let context = context else { return [] }
+
+        // Find kubectl path
+        let whichProcess = Process()
+        whichProcess.executableURL = URL(fileURLWithPath: "/bin/sh")
+        whichProcess.arguments = ["-l", "-c", "which kubectl"]
+        let whichPipe = Pipe()
+        whichProcess.standardOutput = whichPipe
+        whichProcess.standardError = Pipe()
+
+        var kubectlPath = "/usr/local/bin/kubectl"
+        do {
+            try whichProcess.run()
+            whichProcess.waitUntilExit()
+            if whichProcess.terminationStatus == 0 {
+                let data = whichPipe.fileHandleForReading.readDataToEndOfFile()
+                if let path = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines),
+                   !path.isEmpty {
+                    kubectlPath = path
+                }
+            }
+        } catch {}
+
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: kubectlPath)
+        process.arguments = [
+            "get", "namespaces",
+            "--context", context,
+            "-o", "jsonpath={.items[*].metadata.name}",
+        ]
+        let pipe = Pipe()
+        let errPipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = errPipe
+
+        do {
+            try process.run()
+            process.waitUntilExit()
+
+            guard process.terminationStatus == 0 else {
+                let errData = errPipe.fileHandleForReading.readDataToEndOfFile()
+                let errMsg = String(data: errData, encoding: .utf8) ?? ""
+                print("kubectl failed: \(errMsg)")
+                return []
+            }
+
+            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+            guard let output = String(data: data, encoding: .utf8),
+                  !output.isEmpty else { return [] }
+            return output.split(separator: " ").map(String.init).sorted()
+        } catch {
+            print("kubectl exec failed: \(error)")
+            return []
+        }
+    }
+
+    // MARK: - Pod Logs
+
+    func podLogs(
+        name: String,
+        container: String? = nil,
+        tailLines: Int = 100
+    ) -> AsyncThrowingStream<String, Error> {
+        guard let client = client else {
+            return AsyncThrowingStream { $0.finish(throwing: KubernetesError.notConnected) }
+        }
+        return client.logs(
+            podName: name,
+            namespace: selectedNamespace,
+            container: container,
+            follow: true,
+            tailLines: tailLines
+        )
+    }
+}

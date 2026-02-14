@@ -1,6 +1,6 @@
-name: KubeDash
+name: Kamera
 options:
-  bundleIdPrefix: com.kubedash
+  bundleIdPrefix: com.kamera
   deploymentTarget:
     macOS: "14.0"
   xcodeVersion: "15.0"
@@ -13,24 +13,24 @@ packages:
     url: https://github.com/jpsim/Yams
     from: "5.0.0"
 targets:
-  KubeDash:
+  Kamera:
     type: application
     platform: macOS
     sources:
-      - Sources/KubeDash
+      - Sources/Kamera
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.kubedash.app
+        PRODUCT_BUNDLE_IDENTIFIER: com.kamera.app
         INFOPLIST_FILE: Support/Info.plist
-        CODE_SIGN_ENTITLEMENTS: Support/KubeDash.entitlements
+        CODE_SIGN_ENTITLEMENTS: Support/Kamera.entitlements
         CODE_SIGN_STYLE: Automatic
         MACOSX_DEPLOYMENT_TARGET: "14.0"
     dependencies:
       - package: Yams
-  KubeDashTests:
+  KameraTests:
     type: bundle.unit-test
     platform: macOS
     sources:
-      - Tests/KubeDashTests
+      - Tests/KameraTests
     dependencies:
-      - target: KubeDash
+      - target: Kamera

@@ -47,47 +47,58 @@ actor AuthProvider {
     }
 
     private func runExecPlugin(config: KubeConfig.ExecConfig) async throws -> String {
-        let process = Process()
-
-        // Resolve the command path
         let command = config.command
+        let args = config.args ?? []
+
+        // Build the full command string for shell execution
+        // This ensures the user's PATH is used (aws, gcloud, kubelogin, etc.)
+        let fullCommand: String
         if command.hasPrefix("/") {
-            process.executableURL = URL(fileURLWithPath: command)
+            // Absolute path — use directly
+            let escapedArgs = args.map { shellEscape($0) }.joined(separator: " ")
+            fullCommand = "\(shellEscape(command)) \(escapedArgs)"
         } else {
-            process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
-            var args = [command]
-            if let execArgs = config.args {
-                args.append(contentsOf: execArgs)
-            }
-            process.arguments = args
+            // Relative command — let the shell resolve it via PATH
+            let escapedArgs = args.map { shellEscape($0) }.joined(separator: " ")
+            fullCommand = "\(shellEscape(command)) \(escapedArgs)"
         }
 
-        if process.executableURL?.lastPathComponent != "env", let args = config.args {
-            process.arguments = args
-        }
+        let process = Process()
+        // Use login shell to get the user's full PATH
+        // (macOS apps have a minimal PATH that won't include Homebrew, etc.)
+        process.executableURL = URL(fileURLWithPath: "/bin/sh")
+        process.arguments = ["-l", "-c", fullCommand]
 
-        // Set environment variables
+        // Set environment variables from exec config
+        var environment = ProcessInfo.processInfo.environment
         if let envVars = config.env {
-            var environment = ProcessInfo.processInfo.environment
             for envVar in envVars {
                 environment[envVar.name] = envVar.value
             }
-            process.environment = environment
         }
+        process.environment = environment
 
         let stdout = Pipe()
         let stderr = Pipe()
         process.standardOutput = stdout
         process.standardError = stderr
 
-        try process.run()
-        process.waitUntilExit()
+        do {
+            try process.run()
+            process.waitUntilExit()
+        } catch {
+            throw KubernetesError.authenticationFailed(
+                "Failed to run exec plugin '\(command)': \(error.localizedDescription)"
+            )
+        }
 
         guard process.terminationStatus == 0 else {
             let errorData = stderr.fileHandleForReading.readDataToEndOfFile()
-            let errorMessage = String(data: errorData, encoding: .utf8) ?? "unknown error"
+            let errorMessage = String(data: errorData, encoding: .utf8)?.trimmingCharacters(
+                in: .whitespacesAndNewlines
+            ) ?? "unknown error"
             throw KubernetesError.authenticationFailed(
-                "exec plugin '\(command)' failed: \(errorMessage)"
+                "exec plugin '\(command)' exited with code \(process.terminationStatus): \(errorMessage)"
             )
         }
 
@@ -100,44 +111,22 @@ actor AuthProvider {
             let formatter = ISO8601DateFormatter()
             formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
             tokenExpiry = formatter.date(from: expiry)
+                ?? ISO8601DateFormatter().date(from: expiry) // fallback without fractional seconds
         }
 
         return credential.status.token
     }
 
-    // MARK: - Client Certificate
-
-    /// Whether this auth config uses client certificate authentication
-    var usesClientCertificate: Bool {
-        (userInfo.clientCertificateData != nil || userInfo.clientCertificate != nil)
-            && (userInfo.clientKeyData != nil || userInfo.clientKey != nil)
-    }
-
-    /// Load client certificate data for TLS
-    func clientCertificateData() throws -> (certData: Data, keyData: Data)? {
-        let certData: Data?
-        let keyData: Data?
-
-        if let b64Cert = userInfo.clientCertificateData {
-            certData = Data(base64Encoded: b64Cert)
-        } else if let certPath = userInfo.clientCertificate {
-            let expanded = (certPath as NSString).expandingTildeInPath
-            certData = try Data(contentsOf: URL(fileURLWithPath: expanded))
-        } else {
-            certData = nil
+    /// Shell-escape a string for safe use in sh -c
+    private func shellEscape(_ s: String) -> String {
+        if s.isEmpty { return "''" }
+        // If the string only contains safe characters, return as-is
+        let safe = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "/-_.=:@"))
+        if s.unicodeScalars.allSatisfy({ safe.contains($0) }) {
+            return s
         }
-
-        if let b64Key = userInfo.clientKeyData {
-            keyData = Data(base64Encoded: b64Key)
-        } else if let keyPath = userInfo.clientKey {
-            let expanded = (keyPath as NSString).expandingTildeInPath
-            keyData = try Data(contentsOf: URL(fileURLWithPath: expanded))
-        } else {
-            keyData = nil
-        }
-
-        guard let cert = certData, let key = keyData else { return nil }
-        return (cert, key)
+        // Otherwise, wrap in single quotes and escape any embedded single quotes
+        return "'" + s.replacingOccurrences(of: "'", with: "'\\''") + "'"
     }
 }
 

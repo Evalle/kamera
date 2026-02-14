@@ -1,5 +1,5 @@
 import XCTest
-@testable import KubeDash
+@testable import Kamera
 
 final class KubeConfigTests: XCTestCase {
 

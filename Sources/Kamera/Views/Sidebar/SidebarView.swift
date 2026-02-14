@@ -1,0 +1,118 @@
+import SwiftUI
+
+struct SidebarView: View {
+    @Environment(ClusterViewModel.self) private var viewModel
+
+    var body: some View {
+        @Bindable var vm = viewModel
+
+        VStack(spacing: 0) {
+            // Context & namespace pickers (outside List to avoid interaction issues)
+            VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Context")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    contextPicker
+                }
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Namespace")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    namespacePicker
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+
+            Divider()
+
+            List(selection: $vm.selectedResource) {
+                Section("Workloads") {
+                    sidebarItem(.pods, "Pods", viewModel.pods.count)
+                    sidebarItem(.deployments, "Deployments", viewModel.deployments.count)
+                    sidebarItem(.statefulSets, "StatefulSets", viewModel.statefulSets.count)
+                    sidebarItem(.daemonSets, "DaemonSets", viewModel.daemonSets.count)
+                    sidebarItem(.replicaSets, "ReplicaSets", viewModel.replicaSets.count)
+                    sidebarItem(.jobs, "Jobs", viewModel.jobs.count)
+                    sidebarItem(.cronJobs, "CronJobs", viewModel.cronJobs.count)
+                }
+
+                Section("Config") {
+                    sidebarItem(.configMaps, "ConfigMaps", viewModel.configMaps.count)
+                    sidebarItem(.secrets, "Secrets", viewModel.secrets.count)
+                }
+
+                Section("Network") {
+                    sidebarItem(.services, "Services", viewModel.services.count)
+                    sidebarItem(.ingresses, "Ingresses", viewModel.ingresses.count)
+                }
+
+                Section("Cluster") {
+                    sidebarItem(.nodes, "Nodes", viewModel.nodes.count)
+                }
+            }
+            .listStyle(.sidebar)
+        } // end VStack
+        .toolbar {
+            ToolbarItem(placement: .automatic) {
+                Button {
+                    Task { await viewModel.refreshResources() }
+                } label: {
+                    Image(systemName: "arrow.clockwise")
+                }
+                .help("Refresh resources")
+                .disabled(!viewModel.isConnected)
+            }
+        }
+    }
+
+    // MARK: - Sidebar Item
+
+    private func sidebarItem(_ kind: ClusterViewModel.ResourceKind, _ title: String, _ count: Int) -> some View {
+        NavigationLink(value: kind) {
+            Label {
+                HStack {
+                    Text(title)
+                    Spacer()
+                    Text("\(count)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            } icon: {
+                Image(systemName: kind.systemImage)
+            }
+        }
+    }
+
+    // MARK: - Context Picker
+
+    private var contextPicker: some View {
+        Picker("Context", selection: Binding(
+            get: { viewModel.selectedContext ?? "" },
+            set: { viewModel.connectToContext($0) }
+        )) {
+            if let contexts = viewModel.kubeConfig?.contexts {
+                ForEach(contexts) { ctx in
+                    Text(ctx.name)
+                        .tag(ctx.name)
+                }
+            }
+        }
+        .labelsHidden()
+    }
+
+    // MARK: - Namespace Picker
+
+    private var namespacePicker: some View {
+        Picker("Namespace", selection: Binding(
+            get: { viewModel.selectedNamespace },
+            set: { viewModel.selectNamespace($0) }
+        )) {
+            ForEach(viewModel.availableNamespaces, id: \.self) { ns in
+                Text(ns).tag(ns)
+            }
+        }
+        .labelsHidden()
+    }
+}
