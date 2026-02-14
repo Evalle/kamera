@@ -50,6 +50,7 @@ struct SidebarView: View {
 
                 Section("Cluster") {
                     sidebarItem(.nodes, "Nodes", viewModel.nodes.count)
+                    sidebarItem(.events, "Events", viewModel.events.count)
                 }
             }
             .listStyle(.sidebar)

@@ -40,6 +40,7 @@ struct ResourceDetailView: View {
             case .configMaps: ConfigMapListView()
             case .secrets: SecretListView()
             case .nodes: NodeListView()
+            case .events: EventListView()
             }
         }
         .overlay {

@@ -27,6 +27,7 @@ final class ClusterViewModel {
     var configMaps: [ConfigMap] = []
     var secrets: [Secret] = []
     var nodes: [Node] = []
+    var events: [Event] = []
 
     // UI state
     var selectedResource: ResourceKind = .pods
@@ -51,6 +52,7 @@ final class ClusterViewModel {
         case configMaps = "ConfigMaps"
         case secrets = "Secrets"
         case nodes = "Nodes"
+        case events = "Events"
 
         var id: String { rawValue }
 
@@ -68,6 +70,7 @@ final class ClusterViewModel {
             case .configMaps: return "doc.text"
             case .secrets: return "lock"
             case .nodes: return "server.rack"
+            case .events: return "exclamationmark.bubble"
             }
         }
     }
@@ -169,11 +172,12 @@ final class ClusterViewModel {
             async let fConfigMaps = client.list(ConfigMap.self, namespace: ns)
             async let fSecrets = client.list(Secret.self, namespace: ns)
             async let fNodes = client.list(Node.self)
+            async let fEvents = client.list(Event.self, namespace: ns)
 
             let results = try await (
                 fPods, fDeployments, fStatefulSets, fDaemonSets,
                 fReplicaSets, fJobs, fCronJobs, fServices,
-                fIngresses, fConfigMaps, fSecrets, fNodes
+                fIngresses, fConfigMaps, fSecrets, fNodes, fEvents
             )
 
             guard !Task.isCancelled else { return }
@@ -190,6 +194,7 @@ final class ClusterViewModel {
             configMaps = results.9
             secrets = results.10
             nodes = results.11
+            events = results.12
             isLoading = false
         } catch {
             guard !Task.isCancelled else { return }

@@ -471,6 +471,50 @@ struct IngressLoadBalancerEntry: Decodable {
     let hostname: String?
 }
 
+// MARK: - Event
+
+struct Event: KubernetesResource {
+    static let apiPath = "/api/v1"
+    static let kind = "events"
+
+    let metadata: ObjectMetadata
+    let involvedObject: ObjectReference?
+    let reason: String?
+    let message: String?
+    let source: EventSource?
+    let type: String?
+    let firstTimestamp: String?
+    let lastTimestamp: String?
+    let count: Int?
+}
+
+struct ObjectReference: Decodable {
+    let kind: String?
+    let name: String?
+    let namespace: String?
+    let uid: String?
+}
+
+struct EventSource: Decodable {
+    let component: String?
+    let host: String?
+}
+
+// MARK: - Event Helpers
+
+extension Event {
+    var isWarning: Bool { type == "Warning" }
+
+    var involvedObjectDescription: String {
+        guard let obj = involvedObject else { return "-" }
+        return "\(obj.kind ?? "Unknown")/\(obj.name ?? "unknown")"
+    }
+
+    var age: String {
+        formatAge(from: lastTimestamp ?? firstTimestamp ?? metadata.creationTimestamp)
+    }
+}
+
 // MARK: - Pod Phase Helpers
 
 extension Pod {
