@@ -9,6 +9,8 @@ final class KubernetesClient: NSObject, @unchecked Sendable {
     private let clusterConfig: KubeConfig.Cluster
     private let decoder: JSONDecoder
     private let clientCredential: URLCredential?
+    // Keep the temp keychain alive so the SecIdentity inside clientCredential remains valid
+    private let clientKeychain: SecKeychain?
 
     // Lazy so `self` is available as delegate
     private lazy var _session: URLSession = {
@@ -34,7 +36,9 @@ final class KubernetesClient: NSObject, @unchecked Sendable {
         self.decoder = JSONDecoder()
 
         // Create client certificate identity for TLS auth
-        self.clientCredential = Self.createClientCredential(from: userInfo)
+        let (credential, keychain) = Self.createClientCredential(from: userInfo)
+        self.clientCredential = credential
+        self.clientKeychain = keychain
         if self.clientCredential != nil {
             print("[Kamera] Client certificate identity loaded successfully")
         }
@@ -42,9 +46,15 @@ final class KubernetesClient: NSObject, @unchecked Sendable {
         super.init()
     }
 
+    deinit {
+        if let kc = clientKeychain {
+            TempKeychain.delete(kc)
+        }
+    }
+
     // MARK: - Client Certificate Identity
 
-    private static func createClientCredential(from userInfo: KubeConfig.UserInfo) -> URLCredential? {
+    private static func createClientCredential(from userInfo: KubeConfig.UserInfo) -> (URLCredential?, SecKeychain?) {
         // Get cert and key PEM data
         let certPEM: Data?
         let keyPEM: Data?
@@ -65,7 +75,7 @@ final class KubernetesClient: NSObject, @unchecked Sendable {
             keyPEM = nil
         }
 
-        guard let cert = certPEM, let key = keyPEM else { return nil }
+        guard let cert = certPEM, let key = keyPEM else { return (nil, nil) }
 
         // Use openssl to create PKCS12 from PEM cert + key
         let tmpDir = FileManager.default.temporaryDirectory
@@ -86,7 +96,7 @@ final class KubernetesClient: NSObject, @unchecked Sendable {
             try key.write(to: keyFile)
         } catch {
             print("[Kamera] Failed to write temp cert/key files: \(error)")
-            return nil
+            return (nil, nil)
         }
 
         // Run openssl to create PKCS12 bundle
@@ -110,20 +120,30 @@ final class KubernetesClient: NSObject, @unchecked Sendable {
                 let errData = errPipe.fileHandleForReading.readDataToEndOfFile()
                 let errMsg = String(data: errData, encoding: .utf8) ?? ""
                 print("[Kamera] openssl pkcs12 export failed: \(errMsg)")
-                return nil
+                return (nil, nil)
             }
         } catch {
             print("[Kamera] Failed to run openssl: \(error)")
-            return nil
+            return (nil, nil)
         }
 
-        // Import PKCS12 into Security framework
+        // Import PKCS12 into a temporary keychain to avoid polluting the login keychain
+        // (importing into the default keychain causes Xcode to pick up the key for code signing)
         guard let p12Data = try? Data(contentsOf: p12File) else {
             print("[Kamera] Failed to read p12 file")
-            return nil
+            return (nil, nil)
         }
 
-        let options: [String: Any] = [kSecImportExportPassphrase as String: password]
+        let keychainPath = tmpDir.appendingPathComponent("kamera-temp-\(id).keychain").path
+
+        guard let keychain = TempKeychain.create(path: keychainPath, password: password) else {
+            return (nil, nil)
+        }
+
+        let options: [String: Any] = [
+            kSecImportExportPassphrase as String: password,
+            kSecImportExportKeychain as String: keychain,
+        ]
         var items: CFArray?
         let status = SecPKCS12Import(p12Data as CFData, options as CFDictionary, &items)
 
@@ -133,7 +153,8 @@ final class KubernetesClient: NSObject, @unchecked Sendable {
               let identity = first[kSecImportItemIdentity as String]
         else {
             print("[Kamera] SecPKCS12Import failed with status: \(status)")
-            return nil
+            TempKeychain.delete(keychain)
+            return (nil, nil)
         }
 
         // Get the certificate chain
@@ -142,11 +163,14 @@ final class KubernetesClient: NSObject, @unchecked Sendable {
         SecIdentityCopyCertificate(secIdentity, &certRef)
         let certs: [SecCertificate] = certRef.map { [$0] } ?? []
 
-        return URLCredential(
+        let credential = URLCredential(
             identity: secIdentity,
             certificates: certs as [Any],
             persistence: .forSession
         )
+        // Return the keychain so the caller keeps it alive — the SecIdentity
+        // becomes invalid if its backing keychain is deleted.
+        return (credential, keychain)
     }
 
     // MARK: - List Resources
@@ -511,5 +535,25 @@ extension KubernetesClient: URLSessionDelegate {
             return try? Data(contentsOf: URL(fileURLWithPath: expanded))
         }
         return nil
+    }
+}
+
+// MARK: - Temporary Keychain
+// SecKeychain API is deprecated since macOS 10.10 but has no modern replacement
+// for importing PKCS12 identities without polluting the login keychain.
+
+private enum TempKeychain {
+    static func create(path: String, password: String) -> SecKeychain? {
+        var keychain: SecKeychain?
+        let status = SecKeychainCreate(path, UInt32(password.count), password, false, nil, &keychain)
+        guard status == errSecSuccess else {
+            print("[Kamera] Failed to create temp keychain: \(status)")
+            return nil
+        }
+        return keychain
+    }
+
+    static func delete(_ keychain: SecKeychain) {
+        SecKeychainDelete(keychain)
     }
 }
