@@ -38,6 +38,8 @@ struct RawResourceView<T: KubernetesResource>: View {
     @State private var format: Format = .yaml
     @State private var jsonData: Data?
     @State private var loadedResourceName: String?
+    @State private var searchText = ""
+    @State private var matchCount = 0
 
     enum Format: String, CaseIterable {
         case yaml = "YAML"
@@ -56,6 +58,33 @@ struct RawResourceView<T: KubernetesResource>: View {
                 .frame(width: 140)
 
                 Spacer()
+
+                HStack(spacing: 4) {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundStyle(.secondary)
+                        .font(.caption)
+                    TextField("Search...", text: $searchText)
+                        .textFieldStyle(.plain)
+                        .font(.caption)
+                        .frame(width: 120)
+                    if !searchText.isEmpty {
+                        Text("\(matchCount)")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .monospacedDigit()
+                        Button {
+                            searchText = ""
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 6)
+                .padding(.vertical, 3)
+                .background(.quaternary, in: RoundedRectangle(cornerRadius: 6))
 
                 Button {
                     NSPasteboard.general.clearContents()
@@ -97,6 +126,7 @@ struct RawResourceView<T: KubernetesResource>: View {
         .onAppear { loadIfNeeded() }
         .onChange(of: resource.name) { loadIfNeeded() }
         .onChange(of: format) { convertToFormat() }
+        .onChange(of: searchText) { applyHighlighting() }
     }
 
     private func loadIfNeeded() {
@@ -147,7 +177,6 @@ struct RawResourceView<T: KubernetesResource>: View {
         switch format {
         case .json:
             rawText = prettyJSON(data)
-            highlightedText = highlightJSON(rawText)
         case .yaml:
             if let obj = try? JSONSerialization.jsonObject(with: data) {
                 let cleaned = cleanObject(obj)
@@ -157,8 +186,38 @@ struct RawResourceView<T: KubernetesResource>: View {
             } else {
                 rawText = prettyJSON(data)
             }
-            highlightedText = highlightYAML(rawText)
         }
+        applyHighlighting()
+    }
+
+    private func applyHighlighting() {
+        var result = format == .json ? highlightJSON(rawText) : highlightYAML(rawText)
+        if !searchText.isEmpty {
+            matchCount = applySearchHighlight(to: &result, query: searchText)
+        } else {
+            matchCount = 0
+        }
+        highlightedText = result
+    }
+
+    /// Adds yellow background to all case-insensitive matches; returns match count.
+    private func applySearchHighlight(to text: inout AttributedString, query: String) -> Int {
+        var count = 0
+        let plain = String(text.characters)
+        let lowerPlain = plain.lowercased()
+        let lowerQuery = query.lowercased()
+        var searchStart = lowerPlain.startIndex
+        while let range = lowerPlain.range(of: lowerQuery, range: searchStart..<lowerPlain.endIndex) {
+            let startOffset = lowerPlain.distance(from: lowerPlain.startIndex, to: range.lowerBound)
+            let length = lowerPlain.distance(from: range.lowerBound, to: range.upperBound)
+            let attrStart = text.index(text.startIndex, offsetByCharacters: startOffset)
+            let attrEnd = text.index(attrStart, offsetByCharacters: length)
+            text[attrStart..<attrEnd].backgroundColor = .yellow
+            text[attrStart..<attrEnd].foregroundColor = .black
+            count += 1
+            searchStart = range.upperBound
+        }
+        return count
     }
 
     // MARK: - JSON → YAML emitter
