@@ -61,6 +61,7 @@ struct CronJobListView: View {
                                 }
                             }
                         }
+                        ResourceTreeSection(nodes: viewModel.relatedTreeForCronJob(cj))
                         RelatedEventsSection(resourceKind: "CronJob", resourceName: cj.name)
                     }.padding()
                 }.frame(minWidth: 300, idealWidth: 350)

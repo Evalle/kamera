@@ -74,6 +74,7 @@ struct DeploymentListView: View {
 }
 
 struct DeploymentDetailPanel: View {
+    @Environment(ClusterViewModel.self) private var viewModel
     let deployment: Deployment
 
     var body: some View {
@@ -116,6 +117,8 @@ struct DeploymentDetailPanel: View {
                         }
                     }
                 }
+
+                ResourceTreeSection(nodes: viewModel.relatedTreeForDeployment(deployment))
 
                 RelatedEventsSection(resourceKind: "Deployment", resourceName: deployment.name)
 

@@ -54,6 +54,7 @@ struct DaemonSetListView: View {
                                 }
                             }
                         }
+                        ResourceTreeSection(nodes: viewModel.relatedTreeForDaemonSet(ds))
                         RelatedEventsSection(resourceKind: "DaemonSet", resourceName: ds.name)
                     }.padding()
                 }.frame(minWidth: 300, idealWidth: 350)

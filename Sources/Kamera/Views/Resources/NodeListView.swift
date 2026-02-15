@@ -64,6 +64,7 @@ struct NodeListView: View {
 }
 
 struct NodeDetailPanel: View {
+    @Environment(ClusterViewModel.self) private var viewModel
     let node: Node
 
     var body: some View {
@@ -102,6 +103,8 @@ struct NodeDetailPanel: View {
                         DetailRow(label: "Pods", value: capacity["pods"] ?? "-")
                     }
                 }
+
+                ResourceTreeSection(nodes: viewModel.relatedTreeForNode(node))
 
                 RelatedEventsSection(resourceKind: "Node", resourceName: node.name)
 

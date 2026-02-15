@@ -69,6 +69,7 @@ struct JobListView: View {
                                 }
                             }
                         }
+                        ResourceTreeSection(nodes: viewModel.relatedTreeForJob(job))
                         RelatedEventsSection(resourceKind: "Job", resourceName: job.name)
                     }.padding()
                 }.frame(minWidth: 300, idealWidth: 350)

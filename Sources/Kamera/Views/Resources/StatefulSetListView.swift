@@ -59,6 +59,7 @@ struct StatefulSetListView: View {
                                 }
                             }
                         }
+                        ResourceTreeSection(nodes: viewModel.relatedTreeForStatefulSet(ss))
                         RelatedEventsSection(resourceKind: "StatefulSet", resourceName: ss.name)
                     }.padding()
                 }.frame(minWidth: 300, idealWidth: 350)

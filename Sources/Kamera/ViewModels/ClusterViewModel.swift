@@ -418,6 +418,89 @@ final class ClusterViewModel {
         pendingSelection = PendingSelection(kind: kind, name: name)
     }
 
+    // MARK: - Related Resources
+
+    func childReplicaSets(ownedBy owner: ObjectMetadata) -> [ReplicaSet] {
+        guard let uid = owner.uid else { return [] }
+        return replicaSets.filter { rs in
+            rs.metadata.ownerReferences?.contains { $0.uid == uid } ?? false
+        }
+    }
+
+    func childPods(ownedBy owner: ObjectMetadata) -> [Pod] {
+        guard let uid = owner.uid else { return [] }
+        return pods.filter { pod in
+            pod.metadata.ownerReferences?.contains { $0.uid == uid } ?? false
+        }
+    }
+
+    func childJobs(ownedBy owner: ObjectMetadata) -> [Job] {
+        guard let uid = owner.uid else { return [] }
+        return jobs.filter { job in
+            job.metadata.ownerReferences?.contains { $0.uid == uid } ?? false
+        }
+    }
+
+    func podsOnNode(named nodeName: String) -> [Pod] {
+        pods.filter { $0.spec?.nodeName == nodeName }
+    }
+
+    // MARK: - Tree Builders
+
+    func relatedTreeForDeployment(_ deployment: Deployment) -> [ResourceTreeNode] {
+        childReplicaSets(ownedBy: deployment.metadata).map { rs in
+            ResourceTreeNode(
+                id: rs.id,
+                kind: "ReplicaSet",
+                name: rs.name,
+                status: rs.isReady ? .healthy : .warning,
+                children: childPods(ownedBy: rs.metadata).map { podNode($0) }
+            )
+        }
+    }
+
+    func relatedTreeForCronJob(_ cronJob: CronJob) -> [ResourceTreeNode] {
+        childJobs(ownedBy: cronJob.metadata).map { job in
+            ResourceTreeNode(
+                id: job.id,
+                kind: "Job",
+                name: job.name,
+                status: job.isComplete ? .healthy : job.isFailed ? .error : .pending,
+                children: childPods(ownedBy: job.metadata).map { podNode($0) }
+            )
+        }
+    }
+
+    func relatedTreeForStatefulSet(_ ss: StatefulSet) -> [ResourceTreeNode] {
+        childPods(ownedBy: ss.metadata).map { podNode($0) }
+    }
+
+    func relatedTreeForDaemonSet(_ ds: DaemonSet) -> [ResourceTreeNode] {
+        childPods(ownedBy: ds.metadata).map { podNode($0) }
+    }
+
+    func relatedTreeForReplicaSet(_ rs: ReplicaSet) -> [ResourceTreeNode] {
+        childPods(ownedBy: rs.metadata).map { podNode($0) }
+    }
+
+    func relatedTreeForJob(_ job: Job) -> [ResourceTreeNode] {
+        childPods(ownedBy: job.metadata).map { podNode($0) }
+    }
+
+    func relatedTreeForNode(_ node: Node) -> [ResourceTreeNode] {
+        podsOnNode(named: node.name).map { podNode($0) }
+    }
+
+    private func podNode(_ pod: Pod) -> ResourceTreeNode {
+        ResourceTreeNode(
+            id: pod.id,
+            kind: "Pod",
+            name: pod.name,
+            status: pod.statusBadge,
+            children: []
+        )
+    }
+
     // MARK: - Pod Logs
 
     func podLogs(

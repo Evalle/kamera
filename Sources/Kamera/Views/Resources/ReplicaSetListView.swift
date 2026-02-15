@@ -49,6 +49,7 @@ struct ReplicaSetListView: View {
                                 .font(.callout)
                             }
                         }
+                        ResourceTreeSection(nodes: viewModel.relatedTreeForReplicaSet(rs))
                         RelatedEventsSection(resourceKind: "ReplicaSet", resourceName: rs.name)
                     }.padding()
                 }.frame(minWidth: 300, idealWidth: 350)
