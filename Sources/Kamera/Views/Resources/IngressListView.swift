@@ -57,11 +57,36 @@ struct IngressListView: View {
                                 }
                             }
                         }
+                        if let owners = ing.metadata.ownerReferences, !owners.isEmpty {
+                            DetailSection(title: "Owner References") {
+                                ForEach(owners, id: \.uid) { owner in
+                                    HStack {
+                                        Text(owner.kind)
+                                            .foregroundStyle(.secondary)
+                                            .frame(width: 100, alignment: .leading)
+                                        ResourceLink(kind: owner.kind, name: owner.name)
+                                        Spacer()
+                                    }
+                                    .font(.callout)
+                                }
+                            }
+                        }
+                        RelatedEventsSection(resourceKind: "Ingress", resourceName: ing.name)
                     }.padding()
                 }.frame(minWidth: 300, idealWidth: 350)
             }
         }
         .searchable(text: $searchText, prompt: "Filter ingresses...")
         .navigationTitle("Ingresses")
+        .onAppear { handlePendingSelection() }
+        .onChange(of: viewModel.pendingSelection) { handlePendingSelection() }
+    }
+
+    private func handlePendingSelection() {
+        guard let pending = viewModel.pendingSelection, pending.kind == "Ingress" else { return }
+        if let match = viewModel.ingresses.first(where: { $0.name == pending.name }) {
+            selected = match
+            viewModel.pendingSelection = nil
+        }
     }
 }

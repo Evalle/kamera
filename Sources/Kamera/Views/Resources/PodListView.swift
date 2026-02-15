@@ -36,6 +36,16 @@ struct PodListView: View {
                     .foregroundStyle(.secondary)
             }
         }
+        .onAppear { handlePendingSelection() }
+        .onChange(of: viewModel.pendingSelection) { handlePendingSelection() }
+    }
+
+    private func handlePendingSelection() {
+        guard let pending = viewModel.pendingSelection, pending.kind == "Pod" else { return }
+        if let match = viewModel.pods.first(where: { $0.name == pending.name }) {
+            selectedPod = match
+            viewModel.pendingSelection = nil
+        }
     }
 
     private var podTable: some View {
@@ -152,6 +162,25 @@ struct PodDetailPanel: View {
                         }
                     }
                 }
+
+                // Owner References
+                if let owners = pod.metadata.ownerReferences, !owners.isEmpty {
+                    DetailSection(title: "Owner References") {
+                        ForEach(owners, id: \.uid) { owner in
+                            HStack {
+                                Text(owner.kind)
+                                    .foregroundStyle(.secondary)
+                                    .frame(width: 100, alignment: .leading)
+                                ResourceLink(kind: owner.kind, name: owner.name)
+                                Spacer()
+                            }
+                            .font(.callout)
+                        }
+                    }
+                }
+
+                // Related Events
+                RelatedEventsSection(resourceKind: "Pod", resourceName: pod.name)
 
                 // Labels
                 if let labels = pod.metadata.labels, !labels.isEmpty {

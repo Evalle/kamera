@@ -50,6 +50,16 @@ struct NodeListView: View {
             }
         }
         .navigationTitle("Nodes")
+        .onAppear { handlePendingSelection() }
+        .onChange(of: viewModel.pendingSelection) { handlePendingSelection() }
+    }
+
+    private func handlePendingSelection() {
+        guard let pending = viewModel.pendingSelection, pending.kind == "Node" else { return }
+        if let match = viewModel.nodes.first(where: { $0.name == pending.name }) {
+            selectedNode = match
+            viewModel.pendingSelection = nil
+        }
     }
 }
 
@@ -92,6 +102,8 @@ struct NodeDetailPanel: View {
                         DetailRow(label: "Pods", value: capacity["pods"] ?? "-")
                     }
                 }
+
+                RelatedEventsSection(resourceKind: "Node", resourceName: node.name)
 
                 if let conditions = node.status?.conditions, !conditions.isEmpty {
                     DetailSection(title: "Conditions") {

@@ -47,11 +47,36 @@ struct CronJobListView: View {
                             DetailRow(label: "Last Schedule", value: formatAge(from: cj.status?.lastScheduleTime))
                             DetailRow(label: "Age", value: formatAge(from: cj.metadata.creationTimestamp))
                         }
+                        if let owners = cj.metadata.ownerReferences, !owners.isEmpty {
+                            DetailSection(title: "Owner References") {
+                                ForEach(owners, id: \.uid) { owner in
+                                    HStack {
+                                        Text(owner.kind)
+                                            .foregroundStyle(.secondary)
+                                            .frame(width: 100, alignment: .leading)
+                                        ResourceLink(kind: owner.kind, name: owner.name)
+                                        Spacer()
+                                    }
+                                    .font(.callout)
+                                }
+                            }
+                        }
+                        RelatedEventsSection(resourceKind: "CronJob", resourceName: cj.name)
                     }.padding()
                 }.frame(minWidth: 300, idealWidth: 350)
             }
         }
         .searchable(text: $searchText, prompt: "Filter cronjobs...")
         .navigationTitle("CronJobs")
+        .onAppear { handlePendingSelection() }
+        .onChange(of: viewModel.pendingSelection) { handlePendingSelection() }
+    }
+
+    private func handlePendingSelection() {
+        guard let pending = viewModel.pendingSelection, pending.kind == "CronJob" else { return }
+        if let match = viewModel.cronJobs.first(where: { $0.name == pending.name }) {
+            selected = match
+            viewModel.pendingSelection = nil
+        }
     }
 }

@@ -57,13 +57,28 @@ struct SidebarView: View {
         } // end VStack
         .toolbar {
             ToolbarItem(placement: .automatic) {
-                Button {
-                    Task { await viewModel.refreshResources() }
-                } label: {
-                    Image(systemName: "arrow.clockwise")
+                HStack(spacing: 4) {
+                    Button {
+                        Task { await viewModel.refreshResources() }
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                    .help("Refresh resources")
+                    .disabled(!viewModel.isConnected)
+
+                    Picker("Auto-refresh", selection: Binding(
+                        get: { viewModel.autoRefreshInterval },
+                        set: { viewModel.setAutoRefreshInterval($0) }
+                    )) {
+                        ForEach(ClusterViewModel.AutoRefreshInterval.allCases) { interval in
+                            Text(interval.label).tag(interval)
+                        }
+                    }
+                    .labelsHidden()
+                    .frame(width: 60)
+                    .help("Auto-refresh interval")
+                    .disabled(!viewModel.isConnected)
                 }
-                .help("Refresh resources")
-                .disabled(!viewModel.isConnected)
             }
         }
     }

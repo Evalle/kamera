@@ -60,6 +60,16 @@ struct DeploymentListView: View {
         }
         .searchable(text: $searchText, prompt: "Filter deployments...")
         .navigationTitle("Deployments")
+        .onAppear { handlePendingSelection() }
+        .onChange(of: viewModel.pendingSelection) { handlePendingSelection() }
+    }
+
+    private func handlePendingSelection() {
+        guard let pending = viewModel.pendingSelection, pending.kind == "Deployment" else { return }
+        if let match = viewModel.deployments.first(where: { $0.name == pending.name }) {
+            selectedDeployment = match
+            viewModel.pendingSelection = nil
+        }
     }
 }
 
@@ -106,6 +116,8 @@ struct DeploymentDetailPanel: View {
                         }
                     }
                 }
+
+                RelatedEventsSection(resourceKind: "Deployment", resourceName: deployment.name)
 
                 if let selector = deployment.spec?.selector?.matchLabels, !selector.isEmpty {
                     DetailSection(title: "Selector") {

@@ -55,6 +55,16 @@ struct ServiceListView: View {
         }
         .searchable(text: $searchText, prompt: "Filter services...")
         .navigationTitle("Services")
+        .onAppear { handlePendingSelection() }
+        .onChange(of: viewModel.pendingSelection) { handlePendingSelection() }
+    }
+
+    private func handlePendingSelection() {
+        guard let pending = viewModel.pendingSelection, pending.kind == "Service" else { return }
+        if let match = viewModel.services.first(where: { $0.name == pending.name }) {
+            selectedService = match
+            viewModel.pendingSelection = nil
+        }
     }
 
     private func formatPorts(_ ports: [ServicePort]?) -> String {
@@ -114,6 +124,8 @@ struct ServiceDetailPanel: View {
                         }
                     }
                 }
+
+                RelatedEventsSection(resourceKind: "Service", resourceName: service.name)
 
                 if let selector = service.spec?.selector, !selector.isEmpty {
                     DetailSection(title: "Selector") {

@@ -46,11 +46,36 @@ struct ConfigMapListView: View {
                                 }
                             }
                         }
+                        if let owners = cm.metadata.ownerReferences, !owners.isEmpty {
+                            DetailSection(title: "Owner References") {
+                                ForEach(owners, id: \.uid) { owner in
+                                    HStack {
+                                        Text(owner.kind)
+                                            .foregroundStyle(.secondary)
+                                            .frame(width: 100, alignment: .leading)
+                                        ResourceLink(kind: owner.kind, name: owner.name)
+                                        Spacer()
+                                    }
+                                    .font(.callout)
+                                }
+                            }
+                        }
+                        RelatedEventsSection(resourceKind: "ConfigMap", resourceName: cm.name)
                     }.padding()
                 }.frame(minWidth: 300, idealWidth: 350)
             }
         }
         .searchable(text: $searchText, prompt: "Filter configmaps...")
         .navigationTitle("ConfigMaps")
+        .onAppear { handlePendingSelection() }
+        .onChange(of: viewModel.pendingSelection) { handlePendingSelection() }
+    }
+
+    private func handlePendingSelection() {
+        guard let pending = viewModel.pendingSelection, pending.kind == "ConfigMap" else { return }
+        if let match = viewModel.configMaps.first(where: { $0.name == pending.name }) {
+            selected = match
+            viewModel.pendingSelection = nil
+        }
     }
 }

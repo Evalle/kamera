@@ -500,6 +500,29 @@ struct EventSource: Decodable {
     let host: String?
 }
 
+// MARK: - ResourceKind Mapping
+
+extension ClusterViewModel.ResourceKind {
+    static func from(kubernetesKind: String) -> ClusterViewModel.ResourceKind? {
+        switch kubernetesKind {
+        case "Pod": return .pods
+        case "Deployment": return .deployments
+        case "StatefulSet": return .statefulSets
+        case "DaemonSet": return .daemonSets
+        case "ReplicaSet": return .replicaSets
+        case "Job": return .jobs
+        case "CronJob": return .cronJobs
+        case "Service": return .services
+        case "Ingress": return .ingresses
+        case "ConfigMap": return .configMaps
+        case "Secret": return .secrets
+        case "Node": return .nodes
+        case "Event": return .events
+        default: return nil
+        }
+    }
+}
+
 // MARK: - Event Helpers
 
 extension Event {

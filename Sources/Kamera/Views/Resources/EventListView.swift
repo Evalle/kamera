@@ -29,7 +29,15 @@ struct EventListView: View {
                     Text(event.reason ?? "-")
                 }.width(min: 80, ideal: 120)
                 TableColumn("Object") { event in
-                    Text(event.involvedObjectDescription)
+                    if let obj = event.involvedObject, let kind = obj.kind, let name = obj.name {
+                        HStack(spacing: 2) {
+                            Text("\(kind)/")
+                                .foregroundStyle(.secondary)
+                            ResourceLink(kind: kind, name: name)
+                        }
+                    } else {
+                        Text(event.involvedObjectDescription)
+                    }
                 }.width(min: 100, ideal: 180)
                 TableColumn("Message") { event in
                     Text(event.message ?? "-")
@@ -65,7 +73,18 @@ struct EventListView: View {
                         if let obj = event.involvedObject {
                             DetailSection(title: "Involved Object") {
                                 DetailRow(label: "Kind", value: obj.kind ?? "-")
-                                DetailRow(label: "Name", value: obj.name ?? "-")
+                                HStack {
+                                    Text("Name")
+                                        .foregroundStyle(.secondary)
+                                        .frame(width: 100, alignment: .leading)
+                                    if let kind = obj.kind, let name = obj.name {
+                                        ResourceLink(kind: kind, name: name)
+                                    } else {
+                                        Text(obj.name ?? "-")
+                                    }
+                                    Spacer()
+                                }
+                                .font(.callout)
                                 DetailRow(label: "Namespace", value: obj.namespace ?? "-")
                             }
                         }
@@ -89,5 +108,15 @@ struct EventListView: View {
         }
         .searchable(text: $searchText, prompt: "Filter events...")
         .navigationTitle("Events")
+        .onAppear { handlePendingSelection() }
+        .onChange(of: viewModel.pendingSelection) { handlePendingSelection() }
+    }
+
+    private func handlePendingSelection() {
+        guard let pending = viewModel.pendingSelection, pending.kind == "Event" else { return }
+        if let match = viewModel.events.first(where: { $0.name == pending.name }) {
+            selected = match
+            viewModel.pendingSelection = nil
+        }
     }
 }

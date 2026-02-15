@@ -39,15 +39,32 @@ struct ReplicaSetListView: View {
                         }
                         if let owner = rs.metadata.ownerReferences?.first {
                             DetailSection(title: "Owner") {
-                                DetailRow(label: "Kind", value: owner.kind)
-                                DetailRow(label: "Name", value: owner.name)
+                                HStack {
+                                    Text(owner.kind)
+                                        .foregroundStyle(.secondary)
+                                        .frame(width: 100, alignment: .leading)
+                                    ResourceLink(kind: owner.kind, name: owner.name)
+                                    Spacer()
+                                }
+                                .font(.callout)
                             }
                         }
+                        RelatedEventsSection(resourceKind: "ReplicaSet", resourceName: rs.name)
                     }.padding()
                 }.frame(minWidth: 300, idealWidth: 350)
             }
         }
         .searchable(text: $searchText, prompt: "Filter replicasets...")
         .navigationTitle("ReplicaSets")
+        .onAppear { handlePendingSelection() }
+        .onChange(of: viewModel.pendingSelection) { handlePendingSelection() }
+    }
+
+    private func handlePendingSelection() {
+        guard let pending = viewModel.pendingSelection, pending.kind == "ReplicaSet" else { return }
+        if let match = viewModel.replicaSets.first(where: { $0.name == pending.name }) {
+            selected = match
+            viewModel.pendingSelection = nil
+        }
     }
 }

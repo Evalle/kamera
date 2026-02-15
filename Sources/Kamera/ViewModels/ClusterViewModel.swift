@@ -34,6 +34,36 @@ final class ClusterViewModel {
     var isLoading = false
     var resourceError: String?
 
+    // Navigation
+    var pendingSelection: PendingSelection?
+
+    struct PendingSelection: Equatable {
+        let kind: String
+        let name: String
+    }
+
+    // Auto-refresh
+    var autoRefreshInterval: AutoRefreshInterval = .thirtySeconds
+    private var refreshTask: Task<Void, Never>?
+
+    enum AutoRefreshInterval: Double, CaseIterable, Identifiable {
+        case off = 0
+        case fifteenSeconds = 15
+        case thirtySeconds = 30
+        case sixtySeconds = 60
+
+        var id: Double { rawValue }
+
+        var label: String {
+            switch self {
+            case .off: return "Off"
+            case .fifteenSeconds: return "15s"
+            case .thirtySeconds: return "30s"
+            case .sixtySeconds: return "60s"
+            }
+        }
+    }
+
     // Client
     private var client: KubernetesClient?
     private var watchTask: Task<Void, Never>?
@@ -101,6 +131,7 @@ final class ClusterViewModel {
         // Cancel any previous connection setup
         connectTask?.cancel()
         watchTask?.cancel()
+        refreshTask?.cancel()
 
         selectedContext = name
         selectedNamespace = config.namespace(forContext: name)
@@ -126,6 +157,8 @@ final class ClusterViewModel {
                 await loadNamespaces(using: newClient)
                 guard !Task.isCancelled else { return }
                 await refreshResources(using: newClient)
+                guard !Task.isCancelled else { return }
+                startAutoRefresh()
             }
         } catch {
             connectionError = "Failed to connect: \(error.localizedDescription)"
@@ -141,6 +174,7 @@ final class ClusterViewModel {
         if let client = client {
             Task {
                 await refreshResources(using: client)
+                startAutoRefresh()
             }
         }
     }
@@ -152,8 +186,10 @@ final class ClusterViewModel {
         await refreshResources(using: client)
     }
 
-    private func refreshResources(using client: KubernetesClient) async {
-        isLoading = true
+    private func refreshResources(using client: KubernetesClient, silent: Bool = false) async {
+        if !silent {
+            isLoading = true
+        }
         resourceError = nil
 
         let ns = selectedNamespace
@@ -347,6 +383,39 @@ final class ClusterViewModel {
             print("kubectl exec failed: \(error)")
             return []
         }
+    }
+
+    // MARK: - Auto-Refresh
+
+    func startAutoRefresh() {
+        refreshTask?.cancel()
+        guard autoRefreshInterval != .off, let client = client else { return }
+        let interval = autoRefreshInterval.rawValue
+        refreshTask = Task {
+            while !Task.isCancelled && isConnected {
+                try? await Task.sleep(for: .seconds(interval))
+                guard !Task.isCancelled && isConnected else { break }
+                await refreshResources(using: client, silent: true)
+            }
+        }
+    }
+
+    func stopAutoRefresh() {
+        refreshTask?.cancel()
+        refreshTask = nil
+    }
+
+    func setAutoRefreshInterval(_ interval: AutoRefreshInterval) {
+        autoRefreshInterval = interval
+        startAutoRefresh()
+    }
+
+    // MARK: - Navigation
+
+    func navigateTo(kind: String, name: String) {
+        guard let resourceKind = ResourceKind.from(kubernetesKind: kind) else { return }
+        selectedResource = resourceKind
+        pendingSelection = PendingSelection(kind: kind, name: name)
     }
 
     // MARK: - Pod Logs
