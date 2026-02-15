@@ -1,5 +1,4 @@
 import SwiftUI
-import Yams
 
 // MARK: - Detail Tab Picker
 
@@ -121,11 +120,23 @@ struct RawResourceView<T: KubernetesResource>: View {
         }
     }
 
+    /// Strip noisy Kubernetes metadata (managedFields, etc.) for cleaner output.
+    private func cleanObject(_ obj: Any) -> Any {
+        guard var dict = obj as? [String: Any] else { return obj }
+        if var metadata = dict["metadata"] as? [String: Any] {
+            metadata.removeValue(forKey: "managedFields")
+            dict["metadata"] = metadata
+        }
+        return dict
+    }
+
     private func prettyJSON(_ data: Data) -> String {
-        if let obj = try? JSONSerialization.jsonObject(with: data),
-           let pretty = try? JSONSerialization.data(withJSONObject: obj, options: [.prettyPrinted, .sortedKeys]),
-           let str = String(data: pretty, encoding: .utf8) {
-            return str
+        if let obj = try? JSONSerialization.jsonObject(with: data) {
+            let cleaned = cleanObject(obj)
+            if let pretty = try? JSONSerialization.data(withJSONObject: cleaned, options: [.prettyPrinted, .sortedKeys]),
+               let str = String(data: pretty, encoding: .utf8) {
+                return str
+            }
         }
         return String(data: data, encoding: .utf8) ?? ""
     }
@@ -136,14 +147,102 @@ struct RawResourceView<T: KubernetesResource>: View {
         case .json:
             rawText = prettyJSON(data)
         case .yaml:
-            // JSON is valid YAML — parse with Yams then re-emit as YAML
-            let jsonStr = prettyJSON(data)
-            if let node = try? Yams.compose(yaml: jsonStr),
-               let yamlStr = try? Yams.serialize(node: node) {
-                rawText = yamlStr
+            if let obj = try? JSONSerialization.jsonObject(with: data) {
+                let cleaned = cleanObject(obj)
+                var lines: [String] = []
+                emitYAML(cleaned, indent: 0, into: &lines)
+                rawText = lines.joined(separator: "\n")
             } else {
-                rawText = jsonStr
+                rawText = prettyJSON(data)
             }
+        }
+    }
+
+    // MARK: - JSON → YAML emitter
+
+    private func emitYAML(_ value: Any, indent: Int, into lines: inout [String]) {
+        let pad = String(repeating: "  ", count: indent)
+        switch value {
+        case let dict as [String: Any]:
+            for key in dict.keys.sorted() {
+                let val = dict[key]!
+                if let sub = val as? [String: Any], !sub.isEmpty {
+                    lines.append("\(pad)\(yamlKey(key)):")
+                    emitYAML(sub, indent: indent + 1, into: &lines)
+                } else if let arr = val as? [Any], !arr.isEmpty {
+                    lines.append("\(pad)\(yamlKey(key)):")
+                    emitYAMLArray(arr, indent: indent, into: &lines)
+                } else {
+                    lines.append("\(pad)\(yamlKey(key)): \(yamlScalar(val))")
+                }
+            }
+        case let arr as [Any]:
+            emitYAMLArray(arr, indent: indent, into: &lines)
+        default:
+            lines.append("\(pad)\(yamlScalar(value))")
+        }
+    }
+
+    private func emitYAMLArray(_ array: [Any], indent: Int, into lines: inout [String]) {
+        let pad = String(repeating: "  ", count: indent)
+        for item in array {
+            if let dict = item as? [String: Any] {
+                let keys = dict.keys.sorted()
+                for (i, key) in keys.enumerated() {
+                    let val = dict[key]!
+                    let prefix = i == 0 ? "\(pad)- " : "\(pad)  "
+                    if let sub = val as? [String: Any], !sub.isEmpty {
+                        lines.append("\(prefix)\(yamlKey(key)):")
+                        emitYAML(sub, indent: indent + 2, into: &lines)
+                    } else if let arr = val as? [Any], !arr.isEmpty {
+                        lines.append("\(prefix)\(yamlKey(key)):")
+                        emitYAMLArray(arr, indent: indent + 2, into: &lines)
+                    } else {
+                        lines.append("\(prefix)\(yamlKey(key)): \(yamlScalar(val))")
+                    }
+                }
+            } else {
+                lines.append("\(pad)- \(yamlScalar(item))")
+            }
+        }
+    }
+
+    private func yamlKey(_ key: String) -> String {
+        if key.contains(":") || key.contains("#") || key.contains("{") ||
+           key.contains("}") || key.contains("[") || key.contains("]") ||
+           key.contains(",") || key.contains("&") || key.contains("*") ||
+           key.contains("!") || key.contains("|") || key.contains(">") ||
+           key.contains("'") || key.contains("\"") || key.contains("%") ||
+           key.contains("@") || key.contains("`") || key.isEmpty {
+            return "\"\(key.replacingOccurrences(of: "\"", with: "\\\""))\""
+        }
+        return key
+    }
+
+    private func yamlScalar(_ value: Any) -> String {
+        switch value {
+        case is NSNull:
+            return "null"
+        case let num as NSNumber where CFBooleanGetTypeID() == CFGetTypeID(num):
+            return num.boolValue ? "true" : "false"
+        case let num as NSNumber:
+            return "\(num)"
+        case let str as String:
+            if str.isEmpty { return "''" }
+            if str.contains("\n") {
+                return "|\n" + str.split(separator: "\n", omittingEmptySubsequences: false)
+                    .map { "  \($0)" }.joined(separator: "\n")
+            }
+            let needsQuoting = str.contains(": ") || str.contains("#") ||
+                str.contains("\"") || str.hasPrefix("{") || str.hasPrefix("[") ||
+                str.hasPrefix("- ") || str.hasPrefix("? ") ||
+                ["true","false","null","yes","no","~"].contains(str.lowercased())
+            if needsQuoting {
+                return "\"\(str.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\""))\""
+            }
+            return str
+        default:
+            return "\(value)"
         }
     }
 }
