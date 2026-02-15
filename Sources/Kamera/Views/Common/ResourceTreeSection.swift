@@ -67,6 +67,9 @@ struct ResourceTreeLeafRow: View {
             Image(systemName: kindIcon)
                 .font(.caption)
                 .foregroundStyle(.secondary)
+            Text(node.kind)
+                .font(.caption)
+                .foregroundStyle(.secondary)
             ResourceLink(kind: node.kind, name: node.name)
             if let count = childCount {
                 Text("\(count)")
