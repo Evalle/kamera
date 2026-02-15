@@ -4,6 +4,7 @@ struct SecretListView: View {
     @Environment(ClusterViewModel.self) private var viewModel
     @State private var selected: Secret?
     @State private var searchText = ""
+    @State private var detailTab: DetailTab = .overview
 
     private var filtered: [Secret] {
         if searchText.isEmpty { return viewModel.secrets }
@@ -29,7 +30,11 @@ struct SecretListView: View {
             .frame(minWidth: 400)
 
             if let s = selected {
-                TabView {
+                VStack(spacing: 0) {
+                    DetailTabPicker(selection: $detailTab)
+                    if detailTab == .yaml {
+                        RawResourceView(resource: s)
+                    } else {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 16) {
                             Text(s.name).font(.headline)
@@ -70,10 +75,7 @@ struct SecretListView: View {
                             RelatedEventsSection(resourceKind: "Secret", resourceName: s.name)
                         }.padding()
                     }
-                    .tabItem { Label("Overview", systemImage: "list.bullet") }
-
-                    RawResourceView(resource: s)
-                        .tabItem { Label("YAML", systemImage: "doc.text") }
+                    }
                 }
                 .frame(minWidth: 300, idealWidth: 350)
             }

@@ -1,15 +1,43 @@
 import SwiftUI
 import Yams
 
+// MARK: - Detail Tab Picker
+
+enum DetailTab: String, CaseIterable, Identifiable {
+    case overview = "Overview"
+    case yaml = "YAML"
+    var id: String { rawValue }
+}
+
+struct DetailTabPicker: View {
+    @Binding var selection: DetailTab
+
+    var body: some View {
+        Picker("", selection: $selection) {
+            ForEach(DetailTab.allCases) { tab in
+                Text(tab.rawValue).tag(tab)
+            }
+        }
+        .pickerStyle(.segmented)
+        .frame(width: 160)
+        .padding(.horizontal)
+        .padding(.top, 6)
+        .padding(.bottom, 2)
+    }
+}
+
+// MARK: - Raw Resource View
+
 struct RawResourceView<T: KubernetesResource>: View {
     @Environment(ClusterViewModel.self) private var viewModel
     let resource: T
 
     @State private var rawText = ""
-    @State private var isLoading = true
+    @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var format: Format = .yaml
     @State private var jsonData: Data?
+    @State private var loadedResourceName: String?
 
     enum Format: String, CaseIterable {
         case yaml = "YAML"
@@ -66,14 +94,19 @@ struct RawResourceView<T: KubernetesResource>: View {
                 }
             }
         }
-        .task(id: ResourceIdentity(name: resource.name, namespace: resource.namespace)) {
-            await loadRawJSON()
-        }
-        .onChange(of: format) {
-            convertToFormat()
-        }
+        .onAppear { loadIfNeeded() }
+        .onChange(of: resource.name) { loadIfNeeded() }
+        .onChange(of: format) { convertToFormat() }
     }
 
+    private func loadIfNeeded() {
+        let key = "\(resource.namespace ?? "")_\(resource.name)"
+        guard key != loadedResourceName else { return }
+        loadedResourceName = key
+        Task { await loadRawJSON() }
+    }
+
+    @MainActor
     private func loadRawJSON() async {
         isLoading = true
         errorMessage = nil
@@ -108,9 +141,4 @@ struct RawResourceView<T: KubernetesResource>: View {
             }
         }
     }
-}
-
-private struct ResourceIdentity: Equatable {
-    let name: String
-    let namespace: String?
 }

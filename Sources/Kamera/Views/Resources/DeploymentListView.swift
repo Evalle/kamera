@@ -83,9 +83,14 @@ struct DeploymentListView: View {
 struct DeploymentDetailPanel: View {
     @Environment(ClusterViewModel.self) private var viewModel
     let deployment: Deployment
+    @State private var detailTab: DetailTab = .overview
 
     var body: some View {
-        TabView {
+        VStack(spacing: 0) {
+            DetailTabPicker(selection: $detailTab)
+            if detailTab == .yaml {
+                RawResourceView(resource: deployment)
+            } else {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     HStack {
@@ -149,10 +154,7 @@ struct DeploymentDetailPanel: View {
                 }
                 .padding()
             }
-            .tabItem { Label("Overview", systemImage: "list.bullet") }
-
-            RawResourceView(resource: deployment)
-                .tabItem { Label("YAML", systemImage: "doc.text") }
+            }
         }
     }
 }

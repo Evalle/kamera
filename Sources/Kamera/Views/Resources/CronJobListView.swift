@@ -4,6 +4,7 @@ struct CronJobListView: View {
     @Environment(ClusterViewModel.self) private var viewModel
     @State private var selected: CronJob?
     @State private var searchText = ""
+    @State private var detailTab: DetailTab = .overview
 
     private var filtered: [CronJob] {
         if searchText.isEmpty { return viewModel.cronJobs }
@@ -33,7 +34,11 @@ struct CronJobListView: View {
             .frame(minWidth: 400)
 
             if let cj = selected {
-                TabView {
+                VStack(spacing: 0) {
+                    DetailTabPicker(selection: $detailTab)
+                    if detailTab == .yaml {
+                        RawResourceView(resource: cj)
+                    } else {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 16) {
                             HStack {
@@ -71,10 +76,7 @@ struct CronJobListView: View {
                             RelatedEventsSection(resourceKind: "CronJob", resourceName: cj.name)
                         }.padding()
                     }
-                    .tabItem { Label("Overview", systemImage: "list.bullet") }
-
-                    RawResourceView(resource: cj)
-                        .tabItem { Label("YAML", systemImage: "doc.text") }
+                    }
                 }
                 .frame(minWidth: 300, idealWidth: 350)
             }

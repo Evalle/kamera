@@ -88,9 +88,14 @@ struct ServiceListView: View {
 
 struct ServiceDetailPanel: View {
     let service: Service
+    @State private var detailTab: DetailTab = .overview
 
     var body: some View {
-        TabView {
+        VStack(spacing: 0) {
+            DetailTabPicker(selection: $detailTab)
+            if detailTab == .yaml {
+                RawResourceView(resource: service)
+            } else {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     Text(service.name)
@@ -154,10 +159,7 @@ struct ServiceDetailPanel: View {
                 }
                 .padding()
             }
-            .tabItem { Label("Overview", systemImage: "list.bullet") }
-
-            RawResourceView(resource: service)
-                .tabItem { Label("YAML", systemImage: "doc.text") }
+            }
         }
     }
 

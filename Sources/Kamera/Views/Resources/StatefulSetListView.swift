@@ -4,6 +4,7 @@ struct StatefulSetListView: View {
     @Environment(ClusterViewModel.self) private var viewModel
     @State private var selected: StatefulSet?
     @State private var searchText = ""
+    @State private var detailTab: DetailTab = .overview
 
     private var filtered: [StatefulSet] {
         if searchText.isEmpty { return viewModel.statefulSets }
@@ -31,7 +32,11 @@ struct StatefulSetListView: View {
             .frame(minWidth: 400)
 
             if let ss = selected {
-                TabView {
+                VStack(spacing: 0) {
+                    DetailTabPicker(selection: $detailTab)
+                    if detailTab == .yaml {
+                        RawResourceView(resource: ss)
+                    } else {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 16) {
                             HStack { StatusBadge(status: ss.isReady ? .healthy : .warning); Text(ss.name).font(.headline) }
@@ -69,10 +74,7 @@ struct StatefulSetListView: View {
                             RelatedEventsSection(resourceKind: "StatefulSet", resourceName: ss.name)
                         }.padding()
                     }
-                    .tabItem { Label("Overview", systemImage: "list.bullet") }
-
-                    RawResourceView(resource: ss)
-                        .tabItem { Label("YAML", systemImage: "doc.text") }
+                    }
                 }
                 .frame(minWidth: 300, idealWidth: 350)
             }

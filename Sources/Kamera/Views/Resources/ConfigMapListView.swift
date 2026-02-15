@@ -4,6 +4,7 @@ struct ConfigMapListView: View {
     @Environment(ClusterViewModel.self) private var viewModel
     @State private var selected: ConfigMap?
     @State private var searchText = ""
+    @State private var detailTab: DetailTab = .overview
 
     private var filtered: [ConfigMap] {
         if searchText.isEmpty { return viewModel.configMaps }
@@ -28,7 +29,11 @@ struct ConfigMapListView: View {
             .frame(minWidth: 400)
 
             if let cm = selected {
-                TabView {
+                VStack(spacing: 0) {
+                    DetailTabPicker(selection: $detailTab)
+                    if detailTab == .yaml {
+                        RawResourceView(resource: cm)
+                    } else {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 16) {
                             Text(cm.name).font(.headline)
@@ -69,10 +74,7 @@ struct ConfigMapListView: View {
                             RelatedEventsSection(resourceKind: "ConfigMap", resourceName: cm.name)
                         }.padding()
                     }
-                    .tabItem { Label("Overview", systemImage: "list.bullet") }
-
-                    RawResourceView(resource: cm)
-                        .tabItem { Label("YAML", systemImage: "doc.text") }
+                    }
                 }
                 .frame(minWidth: 300, idealWidth: 350)
             }

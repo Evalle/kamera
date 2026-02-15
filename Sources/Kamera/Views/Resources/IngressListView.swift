@@ -4,6 +4,7 @@ struct IngressListView: View {
     @Environment(ClusterViewModel.self) private var viewModel
     @State private var selected: Ingress?
     @State private var searchText = ""
+    @State private var detailTab: DetailTab = .overview
 
     private var filtered: [Ingress] {
         if searchText.isEmpty { return viewModel.ingresses }
@@ -31,7 +32,11 @@ struct IngressListView: View {
             .frame(minWidth: 400)
 
             if let ing = selected {
-                TabView {
+                VStack(spacing: 0) {
+                    DetailTabPicker(selection: $detailTab)
+                    if detailTab == .yaml {
+                        RawResourceView(resource: ing)
+                    } else {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 16) {
                             Text(ing.name).font(.headline)
@@ -80,10 +85,7 @@ struct IngressListView: View {
                             RelatedEventsSection(resourceKind: "Ingress", resourceName: ing.name)
                         }.padding()
                     }
-                    .tabItem { Label("Overview", systemImage: "list.bullet") }
-
-                    RawResourceView(resource: ing)
-                        .tabItem { Label("YAML", systemImage: "doc.text") }
+                    }
                 }
                 .frame(minWidth: 300, idealWidth: 350)
             }

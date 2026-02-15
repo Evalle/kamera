@@ -89,9 +89,14 @@ struct PersistentVolumeListView: View {
 struct PersistentVolumeDetailPanel: View {
     @Environment(ClusterViewModel.self) private var viewModel
     let pv: PersistentVolume
+    @State private var detailTab: DetailTab = .overview
 
     var body: some View {
-        TabView {
+        VStack(spacing: 0) {
+            DetailTabPicker(selection: $detailTab)
+            if detailTab == .yaml {
+                RawResourceView(resource: pv)
+            } else {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     HStack {
@@ -131,10 +136,7 @@ struct PersistentVolumeDetailPanel: View {
                 }
                 .padding()
             }
-            .tabItem { Label("Overview", systemImage: "list.bullet") }
-
-            RawResourceView(resource: pv)
-                .tabItem { Label("YAML", systemImage: "doc.text") }
+            }
         }
     }
 }

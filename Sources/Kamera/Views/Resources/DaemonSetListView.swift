@@ -4,6 +4,7 @@ struct DaemonSetListView: View {
     @Environment(ClusterViewModel.self) private var viewModel
     @State private var selected: DaemonSet?
     @State private var searchText = ""
+    @State private var detailTab: DetailTab = .overview
 
     private var filtered: [DaemonSet] {
         if searchText.isEmpty { return viewModel.daemonSets }
@@ -33,7 +34,11 @@ struct DaemonSetListView: View {
             .frame(minWidth: 400)
 
             if let ds = selected {
-                TabView {
+                VStack(spacing: 0) {
+                    DetailTabPicker(selection: $detailTab)
+                    if detailTab == .yaml {
+                        RawResourceView(resource: ds)
+                    } else {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 16) {
                             HStack { StatusBadge(status: ds.isReady ? .healthy : .warning); Text(ds.name).font(.headline) }
@@ -64,10 +69,7 @@ struct DaemonSetListView: View {
                             RelatedEventsSection(resourceKind: "DaemonSet", resourceName: ds.name)
                         }.padding()
                     }
-                    .tabItem { Label("Overview", systemImage: "list.bullet") }
-
-                    RawResourceView(resource: ds)
-                        .tabItem { Label("YAML", systemImage: "doc.text") }
+                    }
                 }
                 .frame(minWidth: 300, idealWidth: 350)
             }

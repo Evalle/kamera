@@ -4,6 +4,7 @@ struct EventListView: View {
     @Environment(ClusterViewModel.self) private var viewModel
     @State private var selected: Event?
     @State private var searchText = ""
+    @State private var detailTab: DetailTab = .overview
 
     private var filtered: [Event] {
         if searchText.isEmpty { return viewModel.events }
@@ -59,7 +60,11 @@ struct EventListView: View {
             .frame(minWidth: 500)
 
             if let event = selected {
-                TabView {
+                VStack(spacing: 0) {
+                    DetailTabPicker(selection: $detailTab)
+                    if detailTab == .yaml {
+                        RawResourceView(resource: event)
+                    } else {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 16) {
                             HStack(spacing: 8) {
@@ -110,10 +115,7 @@ struct EventListView: View {
                             }
                         }.padding()
                     }
-                    .tabItem { Label("Overview", systemImage: "list.bullet") }
-
-                    RawResourceView(resource: event)
-                        .tabItem { Label("YAML", systemImage: "doc.text") }
+                    }
                 }
                 .frame(minWidth: 300, idealWidth: 350)
             }

@@ -109,9 +109,14 @@ struct PodListView: View {
 struct PodDetailPanel: View {
     let pod: Pod
     @Binding var showLogs: Bool
+    @State private var detailTab: DetailTab = .overview
 
     var body: some View {
-        TabView {
+        VStack(spacing: 0) {
+            DetailTabPicker(selection: $detailTab)
+            if detailTab == .yaml {
+                RawResourceView(resource: pod)
+            } else {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     // Header
@@ -208,10 +213,7 @@ struct PodDetailPanel: View {
                 }
                 .padding()
             }
-            .tabItem { Label("Overview", systemImage: "list.bullet") }
-
-            RawResourceView(resource: pod)
-                .tabItem { Label("YAML", systemImage: "doc.text") }
+            }
         }
         .sheet(isPresented: $showLogs) {
             LogStreamView(podName: pod.name, containers: pod.spec?.containers ?? [])

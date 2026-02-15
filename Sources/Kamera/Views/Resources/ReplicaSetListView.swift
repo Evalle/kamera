@@ -4,6 +4,7 @@ struct ReplicaSetListView: View {
     @Environment(ClusterViewModel.self) private var viewModel
     @State private var selected: ReplicaSet?
     @State private var searchText = ""
+    @State private var detailTab: DetailTab = .overview
 
     private var filtered: [ReplicaSet] {
         if searchText.isEmpty { return viewModel.replicaSets }
@@ -33,7 +34,11 @@ struct ReplicaSetListView: View {
             .frame(minWidth: 400)
 
             if let rs = selected {
-                TabView {
+                VStack(spacing: 0) {
+                    DetailTabPicker(selection: $detailTab)
+                    if detailTab == .yaml {
+                        RawResourceView(resource: rs)
+                    } else {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 16) {
                             HStack { StatusBadge(status: rs.isReady ? .healthy : .warning); Text(rs.name).font(.headline) }
@@ -59,10 +64,7 @@ struct ReplicaSetListView: View {
                             RelatedEventsSection(resourceKind: "ReplicaSet", resourceName: rs.name)
                         }.padding()
                     }
-                    .tabItem { Label("Overview", systemImage: "list.bullet") }
-
-                    RawResourceView(resource: rs)
-                        .tabItem { Label("YAML", systemImage: "doc.text") }
+                    }
                 }
                 .frame(minWidth: 300, idealWidth: 350)
             }
