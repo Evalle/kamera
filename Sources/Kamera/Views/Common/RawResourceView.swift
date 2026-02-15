@@ -121,50 +121,29 @@ struct RawResourceView<T: KubernetesResource>: View {
         }
     }
 
+    private func prettyJSON(_ data: Data) -> String {
+        if let obj = try? JSONSerialization.jsonObject(with: data),
+           let pretty = try? JSONSerialization.data(withJSONObject: obj, options: [.prettyPrinted, .sortedKeys]),
+           let str = String(data: pretty, encoding: .utf8) {
+            return str
+        }
+        return String(data: data, encoding: .utf8) ?? ""
+    }
+
     private func convertToFormat() {
         guard let data = jsonData else { return }
         switch format {
         case .json:
-            if let obj = try? JSONSerialization.jsonObject(with: data),
-               let pretty = try? JSONSerialization.data(withJSONObject: obj, options: [.prettyPrinted, .sortedKeys]),
-               let str = String(data: pretty, encoding: .utf8) {
-                rawText = str
-            } else {
-                rawText = String(data: data, encoding: .utf8) ?? ""
-            }
+            rawText = prettyJSON(data)
         case .yaml:
-            if let obj = try? JSONSerialization.jsonObject(with: data) {
-                let native = toSwiftNative(obj)
-                if let yamlStr = try? Yams.dump(object: native, sortKeys: true) {
-                    rawText = yamlStr
-                } else {
-                    rawText = String(data: data, encoding: .utf8) ?? ""
-                }
+            // JSON is valid YAML — parse with Yams then re-emit as YAML
+            let jsonStr = prettyJSON(data)
+            if let node = try? Yams.compose(yaml: jsonStr),
+               let yamlStr = try? Yams.serialize(node: node) {
+                rawText = yamlStr
             } else {
-                rawText = String(data: data, encoding: .utf8) ?? ""
+                rawText = jsonStr
             }
-        }
-    }
-
-    private func toSwiftNative(_ value: Any) -> Any {
-        switch value {
-        case let dict as [String: Any]:
-            return dict.mapValues { toSwiftNative($0) }
-        case let array as [Any]:
-            return array.map { toSwiftNative($0) }
-        case let number as NSNumber:
-            if CFBooleanGetTypeID() == CFGetTypeID(number) {
-                return number.boolValue
-            }
-            if number.objCType.pointee == CChar(UInt8(ascii: "d")) ||
-               number.objCType.pointee == CChar(UInt8(ascii: "f")) {
-                return number.doubleValue
-            }
-            return number.intValue
-        case is NSNull:
-            return Optional<String>.none as Any
-        default:
-            return value
         }
     }
 }
