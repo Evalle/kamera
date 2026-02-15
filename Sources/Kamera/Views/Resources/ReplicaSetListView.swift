@@ -19,6 +19,11 @@ struct ReplicaSetListView: View {
                 TableColumn("Status") { rs in
                     StatusBadge(status: rs.isReady ? .healthy : .warning)
                 }.width(40)
+                if viewModel.isAllNamespaces {
+                    TableColumn("Namespace") { rs in
+                        Text(rs.namespace ?? "-")
+                    }.width(100)
+                }
                 TableColumn("Name") { rs in Text(rs.name) }.width(min: 150, ideal: 250)
                 TableColumn("Desired") { rs in Text("\(rs.spec?.replicas ?? 0)").monospacedDigit() }.width(60)
                 TableColumn("Current") { rs in Text("\(rs.status?.replicas ?? 0)").monospacedDigit() }.width(60)
@@ -28,31 +33,38 @@ struct ReplicaSetListView: View {
             .frame(minWidth: 400)
 
             if let rs = selected {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 16) {
-                        HStack { StatusBadge(status: rs.isReady ? .healthy : .warning); Text(rs.name).font(.headline) }
-                        Divider()
-                        DetailSection(title: "Info") {
-                            DetailRow(label: "Namespace", value: rs.namespace ?? "-")
-                            DetailRow(label: "Replicas", value: rs.readyCount)
-                            DetailRow(label: "Age", value: formatAge(from: rs.metadata.creationTimestamp))
-                        }
-                        if let owner = rs.metadata.ownerReferences?.first {
-                            DetailSection(title: "Owner") {
-                                HStack {
-                                    Text(owner.kind)
-                                        .foregroundStyle(.secondary)
-                                        .frame(width: 100, alignment: .leading)
-                                    ResourceLink(kind: owner.kind, name: owner.name)
-                                    Spacer()
-                                }
-                                .font(.callout)
+                TabView {
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 16) {
+                            HStack { StatusBadge(status: rs.isReady ? .healthy : .warning); Text(rs.name).font(.headline) }
+                            Divider()
+                            DetailSection(title: "Info") {
+                                DetailRow(label: "Namespace", value: rs.namespace ?? "-")
+                                DetailRow(label: "Replicas", value: rs.readyCount)
+                                DetailRow(label: "Age", value: formatAge(from: rs.metadata.creationTimestamp))
                             }
-                        }
-                        ResourceTreeSection(nodes: viewModel.relatedTreeForReplicaSet(rs))
-                        RelatedEventsSection(resourceKind: "ReplicaSet", resourceName: rs.name)
-                    }.padding()
-                }.frame(minWidth: 300, idealWidth: 350)
+                            if let owner = rs.metadata.ownerReferences?.first {
+                                DetailSection(title: "Owner") {
+                                    HStack {
+                                        Text(owner.kind)
+                                            .foregroundStyle(.secondary)
+                                            .frame(width: 100, alignment: .leading)
+                                        ResourceLink(kind: owner.kind, name: owner.name)
+                                        Spacer()
+                                    }
+                                    .font(.callout)
+                                }
+                            }
+                            ResourceTreeSection(nodes: viewModel.relatedTreeForReplicaSet(rs))
+                            RelatedEventsSection(resourceKind: "ReplicaSet", resourceName: rs.name)
+                        }.padding()
+                    }
+                    .tabItem { Label("Overview", systemImage: "list.bullet") }
+
+                    RawResourceView(resource: rs)
+                        .tabItem { Label("YAML", systemImage: "doc.text") }
+                }
+                .frame(minWidth: 300, idealWidth: 350)
             }
         }
         .searchable(text: $searchText, prompt: "Filter replicasets...")

@@ -21,6 +21,13 @@ struct PersistentVolumeClaimListView: View {
                 }
                 .width(40)
 
+                if viewModel.isAllNamespaces {
+                    TableColumn("Namespace") { pvc in
+                        Text(pvc.namespace ?? "-")
+                    }
+                    .width(100)
+                }
+
                 TableColumn("Name") { pvc in
                     Text(pvc.name)
                 }
@@ -86,45 +93,51 @@ struct PersistentVolumeClaimDetailPanel: View {
     let pvc: PersistentVolumeClaim
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                HStack {
-                    StatusBadge(status: pvc.statusBadge)
-                    Text(pvc.name)
-                        .font(.headline)
-                }
+        TabView {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    HStack {
+                        StatusBadge(status: pvc.statusBadge)
+                        Text(pvc.name)
+                            .font(.headline)
+                    }
 
-                Divider()
+                    Divider()
 
-                DetailSection(title: "Info") {
-                    DetailRow(label: "Namespace", value: pvc.namespace ?? "-")
-                    DetailRow(label: "Phase", value: pvc.status?.phase ?? "-")
-                    DetailRow(label: "Volume", value: pvc.spec?.volumeName ?? "-")
-                    DetailRow(label: "Requested", value: pvc.requestedStorage)
-                    DetailRow(label: "Capacity", value: pvc.actualCapacity)
-                    DetailRow(label: "Access Modes", value: pvc.accessModesShort)
-                    DetailRow(label: "Storage Class", value: pvc.spec?.storageClassName ?? "-")
-                    DetailRow(label: "Age", value: formatAge(from: pvc.metadata.creationTimestamp))
-                }
+                    DetailSection(title: "Info") {
+                        DetailRow(label: "Namespace", value: pvc.namespace ?? "-")
+                        DetailRow(label: "Phase", value: pvc.status?.phase ?? "-")
+                        DetailRow(label: "Volume", value: pvc.spec?.volumeName ?? "-")
+                        DetailRow(label: "Requested", value: pvc.requestedStorage)
+                        DetailRow(label: "Capacity", value: pvc.actualCapacity)
+                        DetailRow(label: "Access Modes", value: pvc.accessModesShort)
+                        DetailRow(label: "Storage Class", value: pvc.spec?.storageClassName ?? "-")
+                        DetailRow(label: "Age", value: formatAge(from: pvc.metadata.creationTimestamp))
+                    }
 
-                if let owners = pvc.metadata.ownerReferences, !owners.isEmpty {
-                    DetailSection(title: "Owner References") {
-                        ForEach(owners, id: \.uid) { owner in
-                            HStack {
-                                Text(owner.kind)
-                                    .foregroundStyle(.secondary)
-                                    .frame(width: 100, alignment: .leading)
-                                ResourceLink(kind: owner.kind, name: owner.name)
-                                Spacer()
+                    if let owners = pvc.metadata.ownerReferences, !owners.isEmpty {
+                        DetailSection(title: "Owner References") {
+                            ForEach(owners, id: \.uid) { owner in
+                                HStack {
+                                    Text(owner.kind)
+                                        .foregroundStyle(.secondary)
+                                        .frame(width: 100, alignment: .leading)
+                                    ResourceLink(kind: owner.kind, name: owner.name)
+                                    Spacer()
+                                }
+                                .font(.callout)
                             }
-                            .font(.callout)
                         }
                     }
-                }
 
-                RelatedEventsSection(resourceKind: "PersistentVolumeClaim", resourceName: pvc.name)
+                    RelatedEventsSection(resourceKind: "PersistentVolumeClaim", resourceName: pvc.name)
+                }
+                .padding()
             }
-            .padding()
+            .tabItem { Label("Overview", systemImage: "list.bullet") }
+
+            RawResourceView(resource: pvc)
+                .tabItem { Label("YAML", systemImage: "doc.text") }
         }
     }
 }

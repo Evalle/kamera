@@ -68,61 +68,67 @@ struct NodeDetailPanel: View {
     let node: Node
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                HStack {
-                    StatusBadge(status: node.isReady ? .healthy : .error)
-                    Text(node.name)
-                        .font(.headline)
-                }
-
-                Divider()
-
-                DetailSection(title: "Info") {
-                    DetailRow(label: "IP", value: node.internalIP ?? "-")
-                    DetailRow(label: "Kubelet", value: node.kubeletVersion ?? "-")
-                    DetailRow(label: "OS", value: node.osImage ?? "-")
-                    DetailRow(
-                        label: "Runtime",
-                        value: node.status?.nodeInfo?.containerRuntimeVersion ?? "-"
-                    )
-                    DetailRow(
-                        label: "Arch",
-                        value: node.status?.nodeInfo?.architecture ?? "-"
-                    )
-                    DetailRow(
-                        label: "Age",
-                        value: formatAge(from: node.metadata.creationTimestamp)
-                    )
-                }
-
-                if let capacity = node.status?.capacity, !capacity.isEmpty {
-                    DetailSection(title: "Capacity") {
-                        DetailRow(label: "CPU", value: capacity["cpu"] ?? "-")
-                        DetailRow(label: "Memory", value: capacity["memory"] ?? "-")
-                        DetailRow(label: "Pods", value: capacity["pods"] ?? "-")
+        TabView {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    HStack {
+                        StatusBadge(status: node.isReady ? .healthy : .error)
+                        Text(node.name)
+                            .font(.headline)
                     }
-                }
 
-                ResourceTreeSection(nodes: viewModel.relatedTreeForNode(node))
+                    Divider()
 
-                RelatedEventsSection(resourceKind: "Node", resourceName: node.name)
+                    DetailSection(title: "Info") {
+                        DetailRow(label: "IP", value: node.internalIP ?? "-")
+                        DetailRow(label: "Kubelet", value: node.kubeletVersion ?? "-")
+                        DetailRow(label: "OS", value: node.osImage ?? "-")
+                        DetailRow(
+                            label: "Runtime",
+                            value: node.status?.nodeInfo?.containerRuntimeVersion ?? "-"
+                        )
+                        DetailRow(
+                            label: "Arch",
+                            value: node.status?.nodeInfo?.architecture ?? "-"
+                        )
+                        DetailRow(
+                            label: "Age",
+                            value: formatAge(from: node.metadata.creationTimestamp)
+                        )
+                    }
 
-                if let conditions = node.status?.conditions, !conditions.isEmpty {
-                    DetailSection(title: "Conditions") {
-                        ForEach(conditions, id: \.type) { cond in
-                            HStack {
-                                StatusBadge(
-                                    status: conditionStatus(type: cond.type, value: cond.status)
-                                )
-                                Text(cond.type)
-                                    .font(.callout)
+                    if let capacity = node.status?.capacity, !capacity.isEmpty {
+                        DetailSection(title: "Capacity") {
+                            DetailRow(label: "CPU", value: capacity["cpu"] ?? "-")
+                            DetailRow(label: "Memory", value: capacity["memory"] ?? "-")
+                            DetailRow(label: "Pods", value: capacity["pods"] ?? "-")
+                        }
+                    }
+
+                    ResourceTreeSection(nodes: viewModel.relatedTreeForNode(node))
+
+                    RelatedEventsSection(resourceKind: "Node", resourceName: node.name)
+
+                    if let conditions = node.status?.conditions, !conditions.isEmpty {
+                        DetailSection(title: "Conditions") {
+                            ForEach(conditions, id: \.type) { cond in
+                                HStack {
+                                    StatusBadge(
+                                        status: conditionStatus(type: cond.type, value: cond.status)
+                                    )
+                                    Text(cond.type)
+                                        .font(.callout)
+                                }
                             }
                         }
                     }
                 }
+                .padding()
             }
-            .padding()
+            .tabItem { Label("Overview", systemImage: "list.bullet") }
+
+            RawResourceView(resource: node)
+                .tabItem { Label("YAML", systemImage: "doc.text") }
         }
     }
 

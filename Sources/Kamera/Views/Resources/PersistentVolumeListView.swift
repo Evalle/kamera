@@ -91,44 +91,50 @@ struct PersistentVolumeDetailPanel: View {
     let pv: PersistentVolume
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                HStack {
-                    StatusBadge(status: pv.statusBadge)
-                    Text(pv.name)
-                        .font(.headline)
-                }
+        TabView {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    HStack {
+                        StatusBadge(status: pv.statusBadge)
+                        Text(pv.name)
+                            .font(.headline)
+                    }
 
-                Divider()
+                    Divider()
 
-                DetailSection(title: "Info") {
-                    DetailRow(label: "Phase", value: pv.status?.phase ?? "-")
-                    DetailRow(label: "Capacity", value: pv.capacity)
-                    DetailRow(label: "Access Modes", value: pv.accessModesShort)
-                    DetailRow(label: "Reclaim Policy", value: pv.spec?.persistentVolumeReclaimPolicy ?? "-")
-                    DetailRow(label: "Storage Class", value: pv.spec?.storageClassName ?? "-")
-                    DetailRow(label: "Age", value: formatAge(from: pv.metadata.creationTimestamp))
-                }
+                    DetailSection(title: "Info") {
+                        DetailRow(label: "Phase", value: pv.status?.phase ?? "-")
+                        DetailRow(label: "Capacity", value: pv.capacity)
+                        DetailRow(label: "Access Modes", value: pv.accessModesShort)
+                        DetailRow(label: "Reclaim Policy", value: pv.spec?.persistentVolumeReclaimPolicy ?? "-")
+                        DetailRow(label: "Storage Class", value: pv.spec?.storageClassName ?? "-")
+                        DetailRow(label: "Age", value: formatAge(from: pv.metadata.creationTimestamp))
+                    }
 
-                if let ref = pv.spec?.claimRef, let name = ref.name {
-                    DetailSection(title: "Claim") {
-                        HStack {
-                            Text("PVC")
-                                .foregroundStyle(.secondary)
-                                .frame(width: 100, alignment: .leading)
-                            ResourceLink(kind: "PersistentVolumeClaim", name: name)
-                            Spacer()
-                        }
-                        .font(.callout)
-                        if let ns = ref.namespace {
-                            DetailRow(label: "Namespace", value: ns)
+                    if let ref = pv.spec?.claimRef, let name = ref.name {
+                        DetailSection(title: "Claim") {
+                            HStack {
+                                Text("PVC")
+                                    .foregroundStyle(.secondary)
+                                    .frame(width: 100, alignment: .leading)
+                                ResourceLink(kind: "PersistentVolumeClaim", name: name)
+                                Spacer()
+                            }
+                            .font(.callout)
+                            if let ns = ref.namespace {
+                                DetailRow(label: "Namespace", value: ns)
+                            }
                         }
                     }
-                }
 
-                RelatedEventsSection(resourceKind: "PersistentVolume", resourceName: pv.name)
+                    RelatedEventsSection(resourceKind: "PersistentVolume", resourceName: pv.name)
+                }
+                .padding()
             }
-            .padding()
+            .tabItem { Label("Overview", systemImage: "list.bullet") }
+
+            RawResourceView(resource: pv)
+                .tabItem { Label("YAML", systemImage: "doc.text") }
         }
     }
 }

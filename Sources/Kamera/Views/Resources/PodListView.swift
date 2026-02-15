@@ -58,6 +58,13 @@ struct PodListView: View {
             }
             .width(40)
 
+            if viewModel.isAllNamespaces {
+                TableColumn("Namespace") { pod in
+                    Text(pod.namespace ?? "-")
+                }
+                .width(100)
+            }
+
             TableColumn("Name") { pod in
                 Text(pod.name)
                     .fontWeight(pod.statusBadge == .error ? .medium : .regular)
@@ -104,101 +111,107 @@ struct PodDetailPanel: View {
     @Binding var showLogs: Bool
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                // Header
-                HStack {
-                    StatusBadge(status: pod.statusBadge)
-                    Text(pod.name)
-                        .font(.headline)
-                    Spacer()
-                    Button {
-                        showLogs = true
-                    } label: {
-                        Label("Logs", systemImage: "text.alignleft")
+        TabView {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    // Header
+                    HStack {
+                        StatusBadge(status: pod.statusBadge)
+                        Text(pod.name)
+                            .font(.headline)
+                        Spacer()
+                        Button {
+                            showLogs = true
+                        } label: {
+                            Label("Logs", systemImage: "text.alignleft")
+                        }
+                        .buttonStyle(.bordered)
                     }
-                    .buttonStyle(.bordered)
-                }
 
-                Divider()
+                    Divider()
 
-                // Basic info
-                DetailSection(title: "Info") {
-                    DetailRow(label: "Namespace", value: pod.namespace ?? "-")
-                    DetailRow(label: "Node", value: pod.spec?.nodeName ?? "-")
-                    DetailRow(label: "Pod IP", value: pod.status?.podIP ?? "-")
-                    DetailRow(label: "Host IP", value: pod.status?.hostIP ?? "-")
-                    DetailRow(label: "Restart Policy", value: pod.spec?.restartPolicy ?? "-")
-                    DetailRow(label: "Age", value: formatAge(from: pod.metadata.creationTimestamp))
-                }
+                    // Basic info
+                    DetailSection(title: "Info") {
+                        DetailRow(label: "Namespace", value: pod.namespace ?? "-")
+                        DetailRow(label: "Node", value: pod.spec?.nodeName ?? "-")
+                        DetailRow(label: "Pod IP", value: pod.status?.podIP ?? "-")
+                        DetailRow(label: "Host IP", value: pod.status?.hostIP ?? "-")
+                        DetailRow(label: "Restart Policy", value: pod.spec?.restartPolicy ?? "-")
+                        DetailRow(label: "Age", value: formatAge(from: pod.metadata.creationTimestamp))
+                    }
 
-                // Containers
-                if let containers = pod.spec?.containers {
-                    DetailSection(title: "Containers") {
-                        ForEach(containers) { container in
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(container.name)
-                                    .fontWeight(.medium)
-                                Text(container.image ?? "unknown")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                    // Containers
+                    if let containers = pod.spec?.containers {
+                        DetailSection(title: "Containers") {
+                            ForEach(containers) { container in
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(container.name)
+                                        .fontWeight(.medium)
+                                    Text(container.image ?? "unknown")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
 
-                                if let status = pod.status?.containerStatuses?
-                                    .first(where: { $0.name == container.name })
-                                {
-                                    HStack(spacing: 4) {
-                                        StatusBadge(status: status.ready ? .healthy : .warning)
-                                        Text(status.ready ? "Ready" : "Not Ready")
-                                            .font(.caption)
-                                        if status.restartCount > 0 {
-                                            Text("(\(status.restartCount) restarts)")
+                                    if let status = pod.status?.containerStatuses?
+                                        .first(where: { $0.name == container.name })
+                                    {
+                                        HStack(spacing: 4) {
+                                            StatusBadge(status: status.ready ? .healthy : .warning)
+                                            Text(status.ready ? "Ready" : "Not Ready")
                                                 .font(.caption)
-                                                .foregroundStyle(.orange)
+                                            if status.restartCount > 0 {
+                                                Text("(\(status.restartCount) restarts)")
+                                                    .font(.caption)
+                                                    .foregroundStyle(.orange)
+                                            }
                                         }
                                     }
                                 }
-                            }
-                            .padding(.vertical, 4)
-                        }
-                    }
-                }
-
-                // Owner References
-                if let owners = pod.metadata.ownerReferences, !owners.isEmpty {
-                    DetailSection(title: "Owner References") {
-                        ForEach(owners, id: \.uid) { owner in
-                            HStack {
-                                Text(owner.kind)
-                                    .foregroundStyle(.secondary)
-                                    .frame(width: 100, alignment: .leading)
-                                ResourceLink(kind: owner.kind, name: owner.name)
-                                Spacer()
-                            }
-                            .font(.callout)
-                        }
-                    }
-                }
-
-                // Related Events
-                RelatedEventsSection(resourceKind: "Pod", resourceName: pod.name)
-
-                // Labels
-                if let labels = pod.metadata.labels, !labels.isEmpty {
-                    DetailSection(title: "Labels") {
-                        FlowLayout(spacing: 4) {
-                            ForEach(labels.sorted(by: { $0.key < $1.key }), id: \.key) { key, value in
-                                Text("\(key)=\(value)")
-                                    .font(.caption)
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
-                                    .background(.quaternary)
-                                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                                .padding(.vertical, 4)
                             }
                         }
                     }
+
+                    // Owner References
+                    if let owners = pod.metadata.ownerReferences, !owners.isEmpty {
+                        DetailSection(title: "Owner References") {
+                            ForEach(owners, id: \.uid) { owner in
+                                HStack {
+                                    Text(owner.kind)
+                                        .foregroundStyle(.secondary)
+                                        .frame(width: 100, alignment: .leading)
+                                    ResourceLink(kind: owner.kind, name: owner.name)
+                                    Spacer()
+                                }
+                                .font(.callout)
+                            }
+                        }
+                    }
+
+                    // Related Events
+                    RelatedEventsSection(resourceKind: "Pod", resourceName: pod.name)
+
+                    // Labels
+                    if let labels = pod.metadata.labels, !labels.isEmpty {
+                        DetailSection(title: "Labels") {
+                            FlowLayout(spacing: 4) {
+                                ForEach(labels.sorted(by: { $0.key < $1.key }), id: \.key) { key, value in
+                                    Text("\(key)=\(value)")
+                                        .font(.caption)
+                                        .padding(.horizontal, 6)
+                                        .padding(.vertical, 2)
+                                        .background(.quaternary)
+                                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                                }
+                            }
+                        }
+                    }
                 }
+                .padding()
             }
-            .padding()
+            .tabItem { Label("Overview", systemImage: "list.bullet") }
+
+            RawResourceView(resource: pod)
+                .tabItem { Label("YAML", systemImage: "doc.text") }
         }
         .sheet(isPresented: $showLogs) {
             LogStreamView(podName: pod.name, containers: pod.spec?.containers ?? [])

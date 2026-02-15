@@ -1,0 +1,116 @@
+import SwiftUI
+import Yams
+
+struct RawResourceView<T: KubernetesResource>: View {
+    @Environment(ClusterViewModel.self) private var viewModel
+    let resource: T
+
+    @State private var rawText = ""
+    @State private var isLoading = true
+    @State private var errorMessage: String?
+    @State private var format: Format = .yaml
+    @State private var jsonData: Data?
+
+    enum Format: String, CaseIterable {
+        case yaml = "YAML"
+        case json = "JSON"
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Picker("Format", selection: $format) {
+                    ForEach(Format.allCases, id: \.self) { f in
+                        Text(f.rawValue).tag(f)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .frame(width: 140)
+
+                Spacer()
+
+                Button {
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(rawText, forType: .string)
+                } label: {
+                    Label("Copy", systemImage: "doc.on.doc")
+                }
+                .buttonStyle(.bordered)
+                .disabled(rawText.isEmpty)
+            }
+            .padding(8)
+
+            Divider()
+
+            if isLoading {
+                Spacer()
+                ProgressView("Loading...")
+                Spacer()
+            } else if let error = errorMessage {
+                Spacer()
+                VStack(spacing: 8) {
+                    Image(systemName: "exclamationmark.triangle")
+                        .font(.title)
+                        .foregroundStyle(.secondary)
+                    Text(error)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+            } else {
+                ScrollView([.horizontal, .vertical]) {
+                    Text(rawText)
+                        .font(.system(.caption, design: .monospaced))
+                        .textSelection(.enabled)
+                        .padding(8)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+        }
+        .task(id: ResourceIdentity(name: resource.name, namespace: resource.namespace)) {
+            await loadRawJSON()
+        }
+        .onChange(of: format) {
+            convertToFormat()
+        }
+    }
+
+    private func loadRawJSON() async {
+        isLoading = true
+        errorMessage = nil
+        do {
+            let data = try await viewModel.fetchRawJSON(for: resource)
+            jsonData = data
+            convertToFormat()
+            isLoading = false
+        } catch {
+            errorMessage = error.localizedDescription
+            isLoading = false
+        }
+    }
+
+    private func convertToFormat() {
+        guard let data = jsonData else { return }
+        switch format {
+        case .json:
+            if let obj = try? JSONSerialization.jsonObject(with: data),
+               let pretty = try? JSONSerialization.data(withJSONObject: obj, options: [.prettyPrinted, .sortedKeys]),
+               let str = String(data: pretty, encoding: .utf8) {
+                rawText = str
+            } else {
+                rawText = String(data: data, encoding: .utf8) ?? ""
+            }
+        case .yaml:
+            if let obj = try? JSONSerialization.jsonObject(with: data),
+               let yamlStr = try? Yams.dump(object: obj) {
+                rawText = yamlStr
+            } else {
+                rawText = String(data: data, encoding: .utf8) ?? ""
+            }
+        }
+    }
+}
+
+private struct ResourceIdentity: Equatable {
+    let name: String
+    let namespace: String?
+}

@@ -18,6 +18,13 @@ struct ServiceListView: View {
                 get: { selectedService?.id },
                 set: { id in selectedService = filtered.first { $0.id == id } }
             )) {
+                if viewModel.isAllNamespaces {
+                    TableColumn("Namespace") { svc in
+                        Text(svc.namespace ?? "-")
+                    }
+                    .width(100)
+                }
+
                 TableColumn("Name") { svc in
                     Text(svc.name)
                 }
@@ -83,68 +90,74 @@ struct ServiceDetailPanel: View {
     let service: Service
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                Text(service.name)
-                    .font(.headline)
+        TabView {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    Text(service.name)
+                        .font(.headline)
 
-                Divider()
+                    Divider()
 
-                DetailSection(title: "Info") {
-                    DetailRow(label: "Namespace", value: service.namespace ?? "-")
-                    DetailRow(label: "Type", value: service.spec?.type ?? "-")
-                    DetailRow(label: "Cluster IP", value: service.spec?.clusterIP ?? "-")
-                    if let lbIP = service.spec?.loadBalancerIP {
-                        DetailRow(label: "LB IP", value: lbIP)
-                    }
-                    DetailRow(
-                        label: "Age",
-                        value: formatAge(from: service.metadata.creationTimestamp)
-                    )
-                }
-
-                if let ports = service.spec?.ports, !ports.isEmpty {
-                    DetailSection(title: "Ports") {
-                        ForEach(ports) { port in
-                            HStack {
-                                Text(port.name ?? "unnamed")
-                                    .frame(width: 80, alignment: .leading)
-                                Text("\(port.port)")
-                                    .monospacedDigit()
-                                Image(systemName: "arrow.right")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                Text(targetPortString(port.targetPort))
-                                    .monospacedDigit()
-                                Text(port.protocol ?? "TCP")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                            .font(.callout)
+                    DetailSection(title: "Info") {
+                        DetailRow(label: "Namespace", value: service.namespace ?? "-")
+                        DetailRow(label: "Type", value: service.spec?.type ?? "-")
+                        DetailRow(label: "Cluster IP", value: service.spec?.clusterIP ?? "-")
+                        if let lbIP = service.spec?.loadBalancerIP {
+                            DetailRow(label: "LB IP", value: lbIP)
                         }
+                        DetailRow(
+                            label: "Age",
+                            value: formatAge(from: service.metadata.creationTimestamp)
+                        )
                     }
-                }
 
-                RelatedEventsSection(resourceKind: "Service", resourceName: service.name)
-
-                if let selector = service.spec?.selector, !selector.isEmpty {
-                    DetailSection(title: "Selector") {
-                        FlowLayout(spacing: 4) {
-                            ForEach(
-                                selector.sorted(by: { $0.key < $1.key }), id: \.key
-                            ) { key, value in
-                                Text("\(key)=\(value)")
-                                    .font(.caption)
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
-                                    .background(.quaternary)
-                                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                    if let ports = service.spec?.ports, !ports.isEmpty {
+                        DetailSection(title: "Ports") {
+                            ForEach(ports) { port in
+                                HStack {
+                                    Text(port.name ?? "unnamed")
+                                        .frame(width: 80, alignment: .leading)
+                                    Text("\(port.port)")
+                                        .monospacedDigit()
+                                    Image(systemName: "arrow.right")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                    Text(targetPortString(port.targetPort))
+                                        .monospacedDigit()
+                                    Text(port.protocol ?? "TCP")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                .font(.callout)
                             }
                         }
                     }
+
+                    RelatedEventsSection(resourceKind: "Service", resourceName: service.name)
+
+                    if let selector = service.spec?.selector, !selector.isEmpty {
+                        DetailSection(title: "Selector") {
+                            FlowLayout(spacing: 4) {
+                                ForEach(
+                                    selector.sorted(by: { $0.key < $1.key }), id: \.key
+                                ) { key, value in
+                                    Text("\(key)=\(value)")
+                                        .font(.caption)
+                                        .padding(.horizontal, 6)
+                                        .padding(.vertical, 2)
+                                        .background(.quaternary)
+                                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                                }
+                            }
+                        }
+                    }
                 }
+                .padding()
             }
-            .padding()
+            .tabItem { Label("Overview", systemImage: "list.bullet") }
+
+            RawResourceView(resource: service)
+                .tabItem { Label("YAML", systemImage: "doc.text") }
         }
     }
 

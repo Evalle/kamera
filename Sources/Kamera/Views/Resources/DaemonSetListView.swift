@@ -19,6 +19,11 @@ struct DaemonSetListView: View {
                 TableColumn("Status") { ds in
                     StatusBadge(status: ds.isReady ? .healthy : .warning)
                 }.width(40)
+                if viewModel.isAllNamespaces {
+                    TableColumn("Namespace") { ds in
+                        Text(ds.namespace ?? "-")
+                    }.width(100)
+                }
                 TableColumn("Name") { ds in Text(ds.name) }.width(min: 150, ideal: 250)
                 TableColumn("Desired") { ds in Text("\(ds.status?.desiredNumberScheduled ?? 0)").monospacedDigit() }.width(60)
                 TableColumn("Current") { ds in Text("\(ds.status?.currentNumberScheduled ?? 0)").monospacedDigit() }.width(60)
@@ -28,36 +33,43 @@ struct DaemonSetListView: View {
             .frame(minWidth: 400)
 
             if let ds = selected {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 16) {
-                        HStack { StatusBadge(status: ds.isReady ? .healthy : .warning); Text(ds.name).font(.headline) }
-                        Divider()
-                        DetailSection(title: "Info") {
-                            DetailRow(label: "Namespace", value: ds.namespace ?? "-")
-                            DetailRow(label: "Desired", value: "\(ds.status?.desiredNumberScheduled ?? 0)")
-                            DetailRow(label: "Current", value: "\(ds.status?.currentNumberScheduled ?? 0)")
-                            DetailRow(label: "Ready", value: "\(ds.status?.numberReady ?? 0)")
-                            DetailRow(label: "Available", value: "\(ds.status?.numberAvailable ?? 0)")
-                            DetailRow(label: "Age", value: formatAge(from: ds.metadata.creationTimestamp))
-                        }
-                        if let owners = ds.metadata.ownerReferences, !owners.isEmpty {
-                            DetailSection(title: "Owner References") {
-                                ForEach(owners, id: \.uid) { owner in
-                                    HStack {
-                                        Text(owner.kind)
-                                            .foregroundStyle(.secondary)
-                                            .frame(width: 100, alignment: .leading)
-                                        ResourceLink(kind: owner.kind, name: owner.name)
-                                        Spacer()
+                TabView {
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 16) {
+                            HStack { StatusBadge(status: ds.isReady ? .healthy : .warning); Text(ds.name).font(.headline) }
+                            Divider()
+                            DetailSection(title: "Info") {
+                                DetailRow(label: "Namespace", value: ds.namespace ?? "-")
+                                DetailRow(label: "Desired", value: "\(ds.status?.desiredNumberScheduled ?? 0)")
+                                DetailRow(label: "Current", value: "\(ds.status?.currentNumberScheduled ?? 0)")
+                                DetailRow(label: "Ready", value: "\(ds.status?.numberReady ?? 0)")
+                                DetailRow(label: "Available", value: "\(ds.status?.numberAvailable ?? 0)")
+                                DetailRow(label: "Age", value: formatAge(from: ds.metadata.creationTimestamp))
+                            }
+                            if let owners = ds.metadata.ownerReferences, !owners.isEmpty {
+                                DetailSection(title: "Owner References") {
+                                    ForEach(owners, id: \.uid) { owner in
+                                        HStack {
+                                            Text(owner.kind)
+                                                .foregroundStyle(.secondary)
+                                                .frame(width: 100, alignment: .leading)
+                                            ResourceLink(kind: owner.kind, name: owner.name)
+                                            Spacer()
+                                        }
+                                        .font(.callout)
                                     }
-                                    .font(.callout)
                                 }
                             }
-                        }
-                        ResourceTreeSection(nodes: viewModel.relatedTreeForDaemonSet(ds))
-                        RelatedEventsSection(resourceKind: "DaemonSet", resourceName: ds.name)
-                    }.padding()
-                }.frame(minWidth: 300, idealWidth: 350)
+                            ResourceTreeSection(nodes: viewModel.relatedTreeForDaemonSet(ds))
+                            RelatedEventsSection(resourceKind: "DaemonSet", resourceName: ds.name)
+                        }.padding()
+                    }
+                    .tabItem { Label("Overview", systemImage: "list.bullet") }
+
+                    RawResourceView(resource: ds)
+                        .tabItem { Label("YAML", systemImage: "doc.text") }
+                }
+                .frame(minWidth: 300, idealWidth: 350)
             }
         }
         .searchable(text: $searchText, prompt: "Filter daemonsets...")

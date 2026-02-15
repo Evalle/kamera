@@ -16,6 +16,11 @@ struct SecretListView: View {
                 get: { selected?.id },
                 set: { id in selected = filtered.first { $0.id == id } }
             )) {
+                if viewModel.isAllNamespaces {
+                    TableColumn("Namespace") { s in
+                        Text(s.namespace ?? "-")
+                    }.width(100)
+                }
                 TableColumn("Name") { s in Text(s.name) }.width(min: 150, ideal: 300)
                 TableColumn("Type") { s in Text(s.type ?? "-").foregroundStyle(.secondary) }.width(min: 100, ideal: 150)
                 TableColumn("Data") { s in Text("\(s.dataCount)").monospacedDigit() }.width(50)
@@ -24,46 +29,53 @@ struct SecretListView: View {
             .frame(minWidth: 400)
 
             if let s = selected {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text(s.name).font(.headline)
-                        Divider()
-                        DetailSection(title: "Info") {
-                            DetailRow(label: "Namespace", value: s.namespace ?? "-")
-                            DetailRow(label: "Type", value: s.type ?? "-")
-                            DetailRow(label: "Data Keys", value: "\(s.dataCount)")
-                            DetailRow(label: "Age", value: formatAge(from: s.metadata.creationTimestamp))
-                        }
-                        if let data = s.data, !data.isEmpty {
-                            DetailSection(title: "Data Keys") {
-                                ForEach(data.keys.sorted(), id: \.self) { key in
-                                    HStack {
-                                        Text(key).font(.callout)
-                                        Spacer()
-                                        Text("\(data[key]?.count ?? 0) bytes")
-                                            .font(.caption)
-                                            .foregroundStyle(.secondary)
+                TabView {
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text(s.name).font(.headline)
+                            Divider()
+                            DetailSection(title: "Info") {
+                                DetailRow(label: "Namespace", value: s.namespace ?? "-")
+                                DetailRow(label: "Type", value: s.type ?? "-")
+                                DetailRow(label: "Data Keys", value: "\(s.dataCount)")
+                                DetailRow(label: "Age", value: formatAge(from: s.metadata.creationTimestamp))
+                            }
+                            if let data = s.data, !data.isEmpty {
+                                DetailSection(title: "Data Keys") {
+                                    ForEach(data.keys.sorted(), id: \.self) { key in
+                                        HStack {
+                                            Text(key).font(.callout)
+                                            Spacer()
+                                            Text("\(data[key]?.count ?? 0) bytes")
+                                                .font(.caption)
+                                                .foregroundStyle(.secondary)
+                                        }
                                     }
                                 }
                             }
-                        }
-                        if let owners = s.metadata.ownerReferences, !owners.isEmpty {
-                            DetailSection(title: "Owner References") {
-                                ForEach(owners, id: \.uid) { owner in
-                                    HStack {
-                                        Text(owner.kind)
-                                            .foregroundStyle(.secondary)
-                                            .frame(width: 100, alignment: .leading)
-                                        ResourceLink(kind: owner.kind, name: owner.name)
-                                        Spacer()
+                            if let owners = s.metadata.ownerReferences, !owners.isEmpty {
+                                DetailSection(title: "Owner References") {
+                                    ForEach(owners, id: \.uid) { owner in
+                                        HStack {
+                                            Text(owner.kind)
+                                                .foregroundStyle(.secondary)
+                                                .frame(width: 100, alignment: .leading)
+                                            ResourceLink(kind: owner.kind, name: owner.name)
+                                            Spacer()
+                                        }
+                                        .font(.callout)
                                     }
-                                    .font(.callout)
                                 }
                             }
-                        }
-                        RelatedEventsSection(resourceKind: "Secret", resourceName: s.name)
-                    }.padding()
-                }.frame(minWidth: 300, idealWidth: 350)
+                            RelatedEventsSection(resourceKind: "Secret", resourceName: s.name)
+                        }.padding()
+                    }
+                    .tabItem { Label("Overview", systemImage: "list.bullet") }
+
+                    RawResourceView(resource: s)
+                        .tabItem { Label("YAML", systemImage: "doc.text") }
+                }
+                .frame(minWidth: 300, idealWidth: 350)
             }
         }
         .searchable(text: $searchText, prompt: "Filter secrets...")

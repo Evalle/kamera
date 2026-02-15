@@ -23,6 +23,13 @@ struct DeploymentListView: View {
                 }
                 .width(40)
 
+                if viewModel.isAllNamespaces {
+                    TableColumn("Namespace") { dep in
+                        Text(dep.namespace ?? "-")
+                    }
+                    .width(100)
+                }
+
                 TableColumn("Name") { dep in
                     Text(dep.name)
                 }
@@ -78,68 +85,74 @@ struct DeploymentDetailPanel: View {
     let deployment: Deployment
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                HStack {
-                    StatusBadge(status: deployment.isAvailable ? .healthy : .warning)
-                    Text(deployment.name)
-                        .font(.headline)
-                }
+        TabView {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    HStack {
+                        StatusBadge(status: deployment.isAvailable ? .healthy : .warning)
+                        Text(deployment.name)
+                            .font(.headline)
+                    }
 
-                Divider()
+                    Divider()
 
-                DetailSection(title: "Info") {
-                    DetailRow(label: "Namespace", value: deployment.namespace ?? "-")
-                    DetailRow(label: "Replicas", value: deployment.readyCount)
-                    DetailRow(
-                        label: "Age",
-                        value: formatAge(from: deployment.metadata.creationTimestamp)
-                    )
-                }
+                    DetailSection(title: "Info") {
+                        DetailRow(label: "Namespace", value: deployment.namespace ?? "-")
+                        DetailRow(label: "Replicas", value: deployment.readyCount)
+                        DetailRow(
+                            label: "Age",
+                            value: formatAge(from: deployment.metadata.creationTimestamp)
+                        )
+                    }
 
-                if let conditions = deployment.status?.conditions, !conditions.isEmpty {
-                    DetailSection(title: "Conditions") {
-                        ForEach(conditions, id: \.type) { cond in
-                            HStack {
-                                StatusBadge(
-                                    status: cond.status == "True" ? .healthy : .warning
-                                )
-                                VStack(alignment: .leading) {
-                                    Text(cond.type)
-                                        .font(.callout)
-                                    if let msg = cond.message {
-                                        Text(msg)
-                                            .font(.caption)
-                                            .foregroundStyle(.secondary)
+                    if let conditions = deployment.status?.conditions, !conditions.isEmpty {
+                        DetailSection(title: "Conditions") {
+                            ForEach(conditions, id: \.type) { cond in
+                                HStack {
+                                    StatusBadge(
+                                        status: cond.status == "True" ? .healthy : .warning
+                                    )
+                                    VStack(alignment: .leading) {
+                                        Text(cond.type)
+                                            .font(.callout)
+                                        if let msg = cond.message {
+                                            Text(msg)
+                                                .font(.caption)
+                                                .foregroundStyle(.secondary)
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-                }
 
-                ResourceTreeSection(nodes: viewModel.relatedTreeForDeployment(deployment))
+                    ResourceTreeSection(nodes: viewModel.relatedTreeForDeployment(deployment))
 
-                RelatedEventsSection(resourceKind: "Deployment", resourceName: deployment.name)
+                    RelatedEventsSection(resourceKind: "Deployment", resourceName: deployment.name)
 
-                if let selector = deployment.spec?.selector?.matchLabels, !selector.isEmpty {
-                    DetailSection(title: "Selector") {
-                        FlowLayout(spacing: 4) {
-                            ForEach(
-                                selector.sorted(by: { $0.key < $1.key }), id: \.key
-                            ) { key, value in
-                                Text("\(key)=\(value)")
-                                    .font(.caption)
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
-                                    .background(.quaternary)
-                                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                    if let selector = deployment.spec?.selector?.matchLabels, !selector.isEmpty {
+                        DetailSection(title: "Selector") {
+                            FlowLayout(spacing: 4) {
+                                ForEach(
+                                    selector.sorted(by: { $0.key < $1.key }), id: \.key
+                                ) { key, value in
+                                    Text("\(key)=\(value)")
+                                        .font(.caption)
+                                        .padding(.horizontal, 6)
+                                        .padding(.vertical, 2)
+                                        .background(.quaternary)
+                                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                                }
                             }
                         }
                     }
                 }
+                .padding()
             }
-            .padding()
+            .tabItem { Label("Overview", systemImage: "list.bullet") }
+
+            RawResourceView(resource: deployment)
+                .tabItem { Label("YAML", systemImage: "doc.text") }
         }
     }
 }

@@ -6,6 +6,11 @@ import SwiftUI
 @MainActor
 @Observable
 final class ClusterViewModel {
+    // All-namespaces sentinel
+    static let allNamespaces = ""
+
+    var isAllNamespaces: Bool { selectedNamespace.isEmpty }
+
     // Connection state
     var kubeConfig: KubeConfig?
     var selectedContext: String?
@@ -199,24 +204,25 @@ final class ClusterViewModel {
         resourceError = nil
 
         let ns = selectedNamespace
+        let nsParam: String? = ns.isEmpty ? nil : ns
 
         do {
             // Fetch all resource types in parallel
-            async let fPods = client.list(Pod.self, namespace: ns)
-            async let fDeployments = client.list(Deployment.self, namespace: ns)
-            async let fStatefulSets = client.list(StatefulSet.self, namespace: ns)
-            async let fDaemonSets = client.list(DaemonSet.self, namespace: ns)
-            async let fReplicaSets = client.list(ReplicaSet.self, namespace: ns)
-            async let fJobs = client.list(Job.self, namespace: ns)
-            async let fCronJobs = client.list(CronJob.self, namespace: ns)
-            async let fServices = client.list(Service.self, namespace: ns)
-            async let fIngresses = client.list(Ingress.self, namespace: ns)
-            async let fConfigMaps = client.list(ConfigMap.self, namespace: ns)
-            async let fSecrets = client.list(Secret.self, namespace: ns)
+            async let fPods = client.list(Pod.self, namespace: nsParam)
+            async let fDeployments = client.list(Deployment.self, namespace: nsParam)
+            async let fStatefulSets = client.list(StatefulSet.self, namespace: nsParam)
+            async let fDaemonSets = client.list(DaemonSet.self, namespace: nsParam)
+            async let fReplicaSets = client.list(ReplicaSet.self, namespace: nsParam)
+            async let fJobs = client.list(Job.self, namespace: nsParam)
+            async let fCronJobs = client.list(CronJob.self, namespace: nsParam)
+            async let fServices = client.list(Service.self, namespace: nsParam)
+            async let fIngresses = client.list(Ingress.self, namespace: nsParam)
+            async let fConfigMaps = client.list(ConfigMap.self, namespace: nsParam)
+            async let fSecrets = client.list(Secret.self, namespace: nsParam)
             async let fNodes = client.list(Node.self)
             async let fPersistentVolumes = client.list(PersistentVolume.self)
-            async let fPersistentVolumeClaims = client.list(PersistentVolumeClaim.self, namespace: ns)
-            async let fEvents = client.list(Event.self, namespace: ns)
+            async let fPersistentVolumeClaims = client.list(PersistentVolumeClaim.self, namespace: nsParam)
+            async let fEvents = client.list(Event.self, namespace: nsParam)
 
             let results = try await (
                 fPods, fDeployments, fStatefulSets, fDaemonSets,
@@ -510,6 +516,18 @@ final class ClusterViewModel {
             status: pod.statusBadge,
             children: []
         )
+    }
+
+    // MARK: - Raw JSON
+
+    func fetchRawJSON<T: KubernetesResource>(for resource: T) async throws -> Data {
+        guard let client = client else { throw KubernetesError.notConnected }
+        var path = T.apiPath
+        if let ns = resource.namespace {
+            path += "/namespaces/\(ns)"
+        }
+        path += "/\(T.kind)/\(resource.name)"
+        return try await client.rawJSON(path: path)
     }
 
     // MARK: - Pod Logs
