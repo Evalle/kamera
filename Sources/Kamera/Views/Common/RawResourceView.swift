@@ -32,6 +32,7 @@ struct RawResourceView<T: KubernetesResource>: View {
     let resource: T
 
     @State private var rawText = ""
+    @State private var highlightedText = AttributedString()
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var format: Format = .yaml
@@ -85,7 +86,7 @@ struct RawResourceView<T: KubernetesResource>: View {
                 Spacer()
             } else {
                 ScrollView([.horizontal, .vertical]) {
-                    Text(rawText)
+                    Text(highlightedText)
                         .font(.system(.caption, design: .monospaced))
                         .textSelection(.enabled)
                         .padding(8)
@@ -146,6 +147,7 @@ struct RawResourceView<T: KubernetesResource>: View {
         switch format {
         case .json:
             rawText = prettyJSON(data)
+            highlightedText = highlightJSON(rawText)
         case .yaml:
             if let obj = try? JSONSerialization.jsonObject(with: data) {
                 let cleaned = cleanObject(obj)
@@ -155,6 +157,7 @@ struct RawResourceView<T: KubernetesResource>: View {
             } else {
                 rawText = prettyJSON(data)
             }
+            highlightedText = highlightYAML(rawText)
         }
     }
 
@@ -244,5 +247,156 @@ struct RawResourceView<T: KubernetesResource>: View {
         default:
             return "\(value)"
         }
+    }
+
+    // MARK: - Syntax highlighting
+
+    private var keyColor: Color { .blue }
+    private var stringColor: Color { .green }
+    private var numberColor: Color { .purple }
+    private var keywordColor: Color { .orange }
+
+    private func highlightYAML(_ text: String) -> AttributedString {
+        var result = AttributedString()
+        let lines = text.components(separatedBy: "\n")
+        for (i, line) in lines.enumerated() {
+            if i > 0 { result.append(AttributedString("\n")) }
+            result.append(highlightYAMLLine(line))
+        }
+        return result
+    }
+
+    private func highlightYAMLLine(_ line: String) -> AttributedString {
+        var result = AttributedString()
+        let trimmed = String(line.drop(while: { $0 == " " }))
+        let indentCount = line.count - trimmed.count
+        if indentCount > 0 {
+            result.append(AttributedString(String(repeating: " ", count: indentCount)))
+        }
+
+        var rest = trimmed
+
+        // Handle array dash prefix
+        if rest.hasPrefix("- ") {
+            var dash = AttributedString("- ")
+            dash.foregroundColor = .secondary
+            result.append(dash)
+            rest = String(rest.dropFirst(2))
+        }
+
+        // key: value | key: | bare value
+        if let colonSpace = rest.range(of: ": ", options: .literal) {
+            let key = String(rest[rest.startIndex..<colonSpace.lowerBound])
+            let value = String(rest[colonSpace.upperBound...])
+            result.append(styledKey(key))
+            var colon = AttributedString(": ")
+            colon.foregroundColor = .secondary
+            result.append(colon)
+            result.append(styledValue(value))
+        } else if rest.hasSuffix(":") {
+            let key = String(rest.dropLast())
+            result.append(styledKey(key))
+            var colon = AttributedString(":")
+            colon.foregroundColor = .secondary
+            result.append(colon)
+        } else {
+            result.append(styledValue(rest))
+        }
+
+        return result
+    }
+
+    private func styledKey(_ key: String) -> AttributedString {
+        var attr = AttributedString(key)
+        attr.foregroundColor = keyColor
+        return attr
+    }
+
+    private func styledValue(_ value: String) -> AttributedString {
+        var attr = AttributedString(value)
+        let lower = value.lowercased()
+        if lower == "true" || lower == "false" || lower == "null" {
+            attr.foregroundColor = keywordColor
+        } else if value == "''" || value.hasPrefix("\"") || value.hasPrefix("|") {
+            attr.foregroundColor = stringColor
+        } else if !value.isEmpty, value.first?.isNumber == true || value.first == "-",
+                  Double(value) != nil {
+            attr.foregroundColor = numberColor
+        } else {
+            attr.foregroundColor = stringColor
+        }
+        return attr
+    }
+
+    private func highlightJSON(_ text: String) -> AttributedString {
+        var result = AttributedString()
+        let lines = text.components(separatedBy: "\n")
+        for (i, line) in lines.enumerated() {
+            if i > 0 { result.append(AttributedString("\n")) }
+            result.append(highlightJSONLine(line))
+        }
+        return result
+    }
+
+    private func highlightJSONLine(_ line: String) -> AttributedString {
+        var result = AttributedString()
+        let trimmed = line.trimmingCharacters(in: .whitespaces)
+        let indentCount = line.count - line.drop(while: { $0 == " " }).count
+        if indentCount > 0 {
+            result.append(AttributedString(String(repeating: " ", count: indentCount)))
+        }
+
+        // "key" : value
+        if trimmed.hasPrefix("\""),
+           let closingQuote = trimmed.dropFirst().firstIndex(of: "\"") {
+            let afterQuote = trimmed.index(after: closingQuote)
+            let key = String(trimmed[trimmed.startIndex...afterQuote])
+            let remainder = String(trimmed[afterQuote...]).dropFirst()
+
+            if remainder.hasPrefix(" : ") || remainder.hasPrefix(": ") {
+                // It's a key
+                var keyAttr = AttributedString(key)
+                keyAttr.foregroundColor = keyColor
+                result.append(keyAttr)
+
+                let sepEnd = remainder.hasPrefix(" : ") ? 3 : 2
+                var sep = AttributedString(String(remainder.prefix(sepEnd)))
+                sep.foregroundColor = .secondary
+                result.append(sep)
+
+                let val = String(remainder.dropFirst(sepEnd))
+                result.append(styledJSONValue(val))
+            } else {
+                // It's a string value
+                result.append(styledJSONValue(trimmed))
+            }
+        } else {
+            result.append(styledJSONValue(trimmed))
+        }
+
+        return result
+    }
+
+    private func styledJSONValue(_ value: String) -> AttributedString {
+        let cleaned = value.hasSuffix(",") ? String(value.dropLast()) : value
+        let comma = value.hasSuffix(",")
+        var attr = AttributedString(cleaned)
+
+        if cleaned.hasPrefix("\"") {
+            attr.foregroundColor = stringColor
+        } else if cleaned == "true" || cleaned == "false" || cleaned == "null" {
+            attr.foregroundColor = keywordColor
+        } else if !cleaned.isEmpty, Double(cleaned) != nil {
+            attr.foregroundColor = numberColor
+        } else {
+            attr.foregroundColor = .secondary
+        }
+
+        if comma {
+            var c = AttributedString(",")
+            c.foregroundColor = .secondary
+            attr.append(c)
+        }
+        return attr
     }
 }
