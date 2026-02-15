@@ -133,12 +133,38 @@ struct RawResourceView<T: KubernetesResource>: View {
                 rawText = String(data: data, encoding: .utf8) ?? ""
             }
         case .yaml:
-            if let obj = try? JSONSerialization.jsonObject(with: data),
-               let yamlStr = try? Yams.dump(object: obj) {
-                rawText = yamlStr
+            if let obj = try? JSONSerialization.jsonObject(with: data) {
+                let native = toSwiftNative(obj)
+                if let yamlStr = try? Yams.dump(object: native, sortKeys: true) {
+                    rawText = yamlStr
+                } else {
+                    rawText = String(data: data, encoding: .utf8) ?? ""
+                }
             } else {
                 rawText = String(data: data, encoding: .utf8) ?? ""
             }
+        }
+    }
+
+    private func toSwiftNative(_ value: Any) -> Any {
+        switch value {
+        case let dict as [String: Any]:
+            return dict.mapValues { toSwiftNative($0) }
+        case let array as [Any]:
+            return array.map { toSwiftNative($0) }
+        case let number as NSNumber:
+            if CFBooleanGetTypeID() == CFGetTypeID(number) {
+                return number.boolValue
+            }
+            if number.objCType.pointee == CChar(UInt8(ascii: "d")) ||
+               number.objCType.pointee == CChar(UInt8(ascii: "f")) {
+                return number.doubleValue
+            }
+            return number.intValue
+        case is NSNull:
+            return Optional<String>.none as Any
+        default:
+            return value
         }
     }
 }
