@@ -43,6 +43,11 @@ struct SidebarView: View {
                     sidebarItem(.secrets, "Secrets", viewModel.secrets.count)
                 }
 
+                Section("Storage") {
+                    sidebarItem(.persistentVolumes, "PersistentVolumes", viewModel.persistentVolumes.count)
+                    sidebarItem(.persistentVolumeClaims, "PVCs", viewModel.persistentVolumeClaims.count)
+                }
+
                 Section("Network") {
                     sidebarItem(.services, "Services", viewModel.services.count)
                     sidebarItem(.ingresses, "Ingresses", viewModel.ingresses.count)

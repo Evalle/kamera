@@ -27,6 +27,8 @@ final class ClusterViewModel {
     var configMaps: [ConfigMap] = []
     var secrets: [Secret] = []
     var nodes: [Node] = []
+    var persistentVolumes: [PersistentVolume] = []
+    var persistentVolumeClaims: [PersistentVolumeClaim] = []
     var events: [Event] = []
 
     // UI state
@@ -81,6 +83,8 @@ final class ClusterViewModel {
         case ingresses = "Ingresses"
         case configMaps = "ConfigMaps"
         case secrets = "Secrets"
+        case persistentVolumes = "PersistentVolumes"
+        case persistentVolumeClaims = "PersistentVolumeClaims"
         case nodes = "Nodes"
         case events = "Events"
 
@@ -99,6 +103,8 @@ final class ClusterViewModel {
             case .ingresses: return "arrow.right.arrow.left"
             case .configMaps: return "doc.text"
             case .secrets: return "lock"
+            case .persistentVolumes: return "cylinder"
+            case .persistentVolumeClaims: return "cylinder.split.1x2"
             case .nodes: return "server.rack"
             case .events: return "exclamationmark.bubble"
             }
@@ -208,12 +214,15 @@ final class ClusterViewModel {
             async let fConfigMaps = client.list(ConfigMap.self, namespace: ns)
             async let fSecrets = client.list(Secret.self, namespace: ns)
             async let fNodes = client.list(Node.self)
+            async let fPersistentVolumes = client.list(PersistentVolume.self)
+            async let fPersistentVolumeClaims = client.list(PersistentVolumeClaim.self, namespace: ns)
             async let fEvents = client.list(Event.self, namespace: ns)
 
             let results = try await (
                 fPods, fDeployments, fStatefulSets, fDaemonSets,
                 fReplicaSets, fJobs, fCronJobs, fServices,
-                fIngresses, fConfigMaps, fSecrets, fNodes, fEvents
+                fIngresses, fConfigMaps, fSecrets, fNodes,
+                fPersistentVolumes, fPersistentVolumeClaims, fEvents
             )
 
             guard !Task.isCancelled else { return }
@@ -230,7 +239,9 @@ final class ClusterViewModel {
             configMaps = results.9
             secrets = results.10
             nodes = results.11
-            events = results.12
+            persistentVolumes = results.12
+            persistentVolumeClaims = results.13
+            events = results.14
             isLoading = false
         } catch {
             guard !Task.isCancelled else { return }

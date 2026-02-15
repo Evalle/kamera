@@ -471,6 +471,58 @@ struct IngressLoadBalancerEntry: Decodable {
     let hostname: String?
 }
 
+// MARK: - PersistentVolume
+
+struct PersistentVolume: KubernetesResource {
+    static let apiPath = "/api/v1"
+    static let kind = "persistentvolumes"
+
+    let metadata: ObjectMetadata
+    let spec: PersistentVolumeSpec?
+    let status: PersistentVolumeStatus?
+}
+
+struct PersistentVolumeSpec: Decodable {
+    let capacity: [String: String]?
+    let accessModes: [String]?
+    let persistentVolumeReclaimPolicy: String?
+    let storageClassName: String?
+    let claimRef: ClaimReference?
+}
+
+struct ClaimReference: Decodable {
+    let name: String?
+    let namespace: String?
+}
+
+struct PersistentVolumeStatus: Decodable {
+    let phase: String?
+}
+
+// MARK: - PersistentVolumeClaim
+
+struct PersistentVolumeClaim: KubernetesResource {
+    static let apiPath = "/api/v1"
+    static let kind = "persistentvolumeclaims"
+
+    let metadata: ObjectMetadata
+    let spec: PersistentVolumeClaimSpec?
+    let status: PersistentVolumeClaimStatus?
+}
+
+struct PersistentVolumeClaimSpec: Decodable {
+    let accessModes: [String]?
+    let resources: ResourceRequirements?
+    let storageClassName: String?
+    let volumeName: String?
+}
+
+struct PersistentVolumeClaimStatus: Decodable {
+    let phase: String?
+    let capacity: [String: String]?
+    let accessModes: [String]?
+}
+
 // MARK: - Event
 
 struct Event: KubernetesResource {
@@ -517,6 +569,8 @@ extension ClusterViewModel.ResourceKind {
         case "ConfigMap": return .configMaps
         case "Secret": return .secrets
         case "Node": return .nodes
+        case "PersistentVolume": return .persistentVolumes
+        case "PersistentVolumeClaim": return .persistentVolumeClaims
         case "Event": return .events
         default: return nil
         }
@@ -725,5 +779,81 @@ extension Node {
 
     var osImage: String? {
         status?.nodeInfo?.osImage
+    }
+}
+
+// MARK: - PersistentVolume Helpers
+
+extension PersistentVolume {
+    var capacity: String {
+        spec?.capacity?["storage"] ?? "-"
+    }
+
+    var isBound: Bool {
+        status?.phase == "Bound"
+    }
+
+    var accessModesShort: String {
+        spec?.accessModes?.map { abbreviateAccessMode($0) }.joined(separator: ",") ?? "-"
+    }
+
+    var statusBadge: StatusBadge.Status {
+        switch status?.phase {
+        case "Bound": return .healthy
+        case "Available": return .pending
+        case "Released": return .warning
+        case "Failed": return .error
+        default: return .unknown
+        }
+    }
+
+    var claimDescription: String {
+        guard let ref = spec?.claimRef else { return "-" }
+        let ns = ref.namespace ?? ""
+        let name = ref.name ?? ""
+        return ns.isEmpty ? name : "\(ns)/\(name)"
+    }
+}
+
+// MARK: - PersistentVolumeClaim Helpers
+
+extension PersistentVolumeClaim {
+    var isBound: Bool {
+        status?.phase == "Bound"
+    }
+
+    var requestedStorage: String {
+        spec?.resources?.requests?["storage"] ?? "-"
+    }
+
+    var actualCapacity: String {
+        status?.capacity?["storage"] ?? "-"
+    }
+
+    var accessModesShort: String {
+        let modes = status?.accessModes ?? spec?.accessModes ?? []
+        if modes.isEmpty { return "-" }
+        return modes.map { abbreviateAccessMode($0) }.joined(separator: ",")
+    }
+
+    var statusBadge: StatusBadge.Status {
+        switch status?.phase {
+        case "Bound": return .healthy
+        case "Pending": return .pending
+        case "Lost": return .error
+        default: return .unknown
+        }
+    }
+}
+
+// MARK: - Access Mode Abbreviation
+
+private func abbreviateAccessMode(_ mode: String) -> String {
+    switch mode {
+    case "ReadWriteOnce": return "RWO"
+    case "ReadOnlyMany": return "ROX"
+    case "ReadWriteMany": return "RWX"
+    case "ReadWriteOncePod": return "RWOP"
+    default: return mode
     }
 }

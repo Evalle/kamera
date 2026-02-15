@@ -39,6 +39,8 @@ struct ResourceDetailView: View {
             case .ingresses: IngressListView()
             case .configMaps: ConfigMapListView()
             case .secrets: SecretListView()
+            case .persistentVolumes: PersistentVolumeListView()
+            case .persistentVolumeClaims: PersistentVolumeClaimListView()
             case .nodes: NodeListView()
             case .events: EventListView()
             }
