@@ -346,30 +346,23 @@ struct RawResourceView<T: KubernetesResource>: View {
             result.append(AttributedString(String(repeating: " ", count: indentCount)))
         }
 
-        // "key" : value
-        if trimmed.hasPrefix("\""),
-           let closingQuote = trimmed.dropFirst().firstIndex(of: "\"") {
-            let afterQuote = trimmed.index(after: closingQuote)
-            let key = String(trimmed[trimmed.startIndex...afterQuote])
-            let remainder = String(trimmed[afterQuote...]).dropFirst()
+        // Apple's prettyPrinted JSON uses " : " between key and value
+        if trimmed.hasPrefix("\""), let sep = trimmed.range(of: "\" : ") {
+            let key = String(trimmed[trimmed.startIndex...sep.lowerBound])
+            let value = String(trimmed[sep.upperBound...])
 
-            if remainder.hasPrefix(" : ") || remainder.hasPrefix(": ") {
-                // It's a key
-                var keyAttr = AttributedString(key)
-                keyAttr.foregroundColor = keyColor
-                result.append(keyAttr)
+            var keyAttr = AttributedString(key)
+            keyAttr.foregroundColor = keyColor
+            result.append(keyAttr)
 
-                let sepEnd = remainder.hasPrefix(" : ") ? 3 : 2
-                var sep = AttributedString(String(remainder.prefix(sepEnd)))
-                sep.foregroundColor = .secondary
-                result.append(sep)
+            var sepAttr = AttributedString(" : ")
+            sepAttr.foregroundColor = .secondary
+            result.append(sepAttr)
 
-                let val = String(remainder.dropFirst(sepEnd))
-                result.append(styledJSONValue(val))
-            } else {
-                // It's a string value
-                result.append(styledJSONValue(trimmed))
-            }
+            result.append(styledJSONValue(value))
+        } else if trimmed.hasPrefix("\"") {
+            // String value (not a key)
+            result.append(styledJSONValue(trimmed))
         } else {
             result.append(styledJSONValue(trimmed))
         }
