@@ -42,6 +42,28 @@ final class ClusterViewModel {
     var resourceError: String?
     var isQuickSearchPresented = false
 
+    // MARK: - Health Summary
+
+    var unhealthyPodCount: Int {
+        pods.filter { $0.statusBadge == .error || $0.statusBadge == .warning }.count
+    }
+
+    var unavailableDeploymentCount: Int {
+        deployments.filter { !$0.isAvailable }.count
+    }
+
+    var failedJobCount: Int {
+        jobs.filter { $0.isFailed }.count
+    }
+
+    var unreadyNodeCount: Int {
+        nodes.filter { !$0.isReady }.count
+    }
+
+    var warningEventCount: Int {
+        events.filter { $0.isWarning }.count
+    }
+
     // Navigation
     var pendingSelection: PendingSelection?
 
