@@ -2,7 +2,7 @@ import Foundation
 
 // MARK: - Watch Event
 
-struct WatchEvent<T: KubernetesResource>: Decodable {
+struct WatchEvent<T: KubernetesResource & Sendable>: Decodable, Sendable {
     let type: EventType
     let object: T
 
