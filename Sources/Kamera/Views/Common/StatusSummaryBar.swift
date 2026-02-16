@@ -21,7 +21,7 @@ struct StatusSummaryBar: View {
                 )
                 chip(
                     icon: "arrow.triangle.2.circlepath",
-                    label: "Deploys",
+                    label: "Deployments",
                     count: viewModel.unavailableDeploymentCount,
                     kind: .deployments
                 )
