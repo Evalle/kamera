@@ -2,12 +2,12 @@ name: Kamera
 options:
   bundleIdPrefix: com.kamera
   deploymentTarget:
-    macOS: "14.0"
-  xcodeVersion: "15.0"
+    macOS: "14.4"
+  xcodeVersion: "16.0"
   createIntermediateGroups: true
 settings:
   base:
-    SWIFT_VERSION: "5.9"
+    SWIFT_VERSION: "6.0"
 packages:
   Yams:
     url: https://github.com/jpsim/Yams
@@ -24,7 +24,7 @@ targets:
         INFOPLIST_FILE: Support/Info.plist
         CODE_SIGN_ENTITLEMENTS: Support/Kamera.entitlements
         CODE_SIGN_STYLE: Automatic
-        MACOSX_DEPLOYMENT_TARGET: "14.0"
+        MACOSX_DEPLOYMENT_TARGET: "14.4"
     dependencies:
       - package: Yams
   KameraTests:

@@ -91,17 +91,23 @@ Configurable auto-refresh at 15s, 30s, or 60s intervals to keep data current wit
 
 ## Installation
 
-### From Source
+### Download
+
+Grab the latest `Kamera.dmg` from the [Releases](../../releases) page, open it, and drag **Kamera.app** into **Applications**.
+
+> The app is not notarized &mdash; on first launch you may need to right-click &rarr; Open, or allow it in System Settings &rarr; Privacy & Security.
+
+### Build from Source
 
 Requires **Xcode 16+** and **macOS 14.4+**.
 
 ```bash
 git clone https://github.com/your-username/Kamera.git
 cd Kamera
-make build
+make dmg
 ```
 
-The built app will be in `DerivedData/` &mdash; or open `Kamera.xcodeproj` in Xcode and hit Run.
+This builds a Release `.app` and packages it into `build/Kamera.dmg`. You can also open `Kamera.xcodeproj` in Xcode and hit Run.
 
 ### Prerequisites
 
@@ -119,6 +125,9 @@ make build
 
 # Release build
 make release
+
+# Package as .dmg
+make dmg
 
 # Run tests
 make test
