@@ -40,6 +40,7 @@ final class ClusterViewModel {
     var selectedResource: ResourceKind = .pods
     var isLoading = false
     var resourceError: String?
+    var isQuickSearchPresented = false
 
     // Navigation
     var pendingSelection: PendingSelection?
@@ -433,6 +434,67 @@ final class ClusterViewModel {
         guard let resourceKind = ResourceKind.from(kubernetesKind: kind) else { return }
         selectedResource = resourceKind
         pendingSelection = PendingSelection(kind: kind, name: name)
+    }
+
+    // MARK: - Sidebar Navigation
+
+    func selectPreviousResource() {
+        let all = ResourceKind.allCases
+        guard let i = all.firstIndex(of: selectedResource), i > all.startIndex else { return }
+        selectedResource = all[all.index(before: i)]
+    }
+
+    func selectNextResource() {
+        let all = ResourceKind.allCases
+        guard let i = all.firstIndex(of: selectedResource) else { return }
+        let next = all.index(after: i)
+        guard next < all.endIndex else { return }
+        selectedResource = all[next]
+    }
+
+    // MARK: - Quick Search
+
+    struct SearchResult: Identifiable {
+        let id: String
+        let kind: ResourceKind
+        let name: String
+        let namespace: String?
+        var icon: String { kind.systemImage }
+    }
+
+    func searchAllResources(query: String) -> [SearchResult] {
+        guard !query.isEmpty else { return [] }
+        let q = query.lowercased()
+        var results: [SearchResult] = []
+
+        func match<T: KubernetesResource>(_ items: [T], kind: ResourceKind) {
+            for item in items where item.name.lowercased().contains(q) {
+                results.append(SearchResult(
+                    id: "\(kind.rawValue)-\(item.id)",
+                    kind: kind,
+                    name: item.name,
+                    namespace: item.namespace
+                ))
+            }
+        }
+
+        match(pods, kind: .pods)
+        match(deployments, kind: .deployments)
+        match(statefulSets, kind: .statefulSets)
+        match(daemonSets, kind: .daemonSets)
+        match(replicaSets, kind: .replicaSets)
+        match(jobs, kind: .jobs)
+        match(cronJobs, kind: .cronJobs)
+        match(services, kind: .services)
+        match(ingresses, kind: .ingresses)
+        match(configMaps, kind: .configMaps)
+        match(secrets, kind: .secrets)
+        match(persistentVolumes, kind: .persistentVolumes)
+        match(persistentVolumeClaims, kind: .persistentVolumeClaims)
+        match(nodes, kind: .nodes)
+        match(events, kind: .events)
+
+        return results
     }
 
     // MARK: - Related Resources

@@ -14,6 +14,20 @@ struct ContentView: View {
                 NotConnectedView()
             }
         }
+        .overlay {
+            if viewModel.isQuickSearchPresented {
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        viewModel.isQuickSearchPresented = false
+                    }
+                VStack {
+                    QuickSearchView()
+                        .padding(.top, 80)
+                    Spacer()
+                }
+            }
+        }
         .task {
             viewModel.loadConfig()
         }

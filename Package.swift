@@ -3,7 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "Kamera",
-    platforms: [.macOS(.v14)],
+    platforms: [.macOS("14.4")],
     dependencies: [
         .package(url: "https://github.com/jpsim/Yams.git", from: "5.0.0"),
     ],

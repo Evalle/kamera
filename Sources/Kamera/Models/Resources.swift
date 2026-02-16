@@ -564,6 +564,26 @@ struct EventSource: Decodable {
 // MARK: - ResourceKind Mapping
 
 extension ClusterViewModel.ResourceKind {
+    var kubernetesKind: String {
+        switch self {
+        case .pods: return "Pod"
+        case .deployments: return "Deployment"
+        case .statefulSets: return "StatefulSet"
+        case .daemonSets: return "DaemonSet"
+        case .replicaSets: return "ReplicaSet"
+        case .jobs: return "Job"
+        case .cronJobs: return "CronJob"
+        case .services: return "Service"
+        case .ingresses: return "Ingress"
+        case .configMaps: return "ConfigMap"
+        case .secrets: return "Secret"
+        case .nodes: return "Node"
+        case .persistentVolumes: return "PersistentVolume"
+        case .persistentVolumeClaims: return "PersistentVolumeClaim"
+        case .events: return "Event"
+        }
+    }
+
     static func from(kubernetesKind: String) -> ClusterViewModel.ResourceKind? {
         switch kubernetesKind {
         case "Pod": return .pods

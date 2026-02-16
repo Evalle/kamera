@@ -130,6 +130,8 @@ struct SidebarView: View {
             get: { viewModel.selectedNamespace },
             set: { viewModel.selectNamespace($0) }
         )) {
+            Text("All Namespaces").tag(ClusterViewModel.allNamespaces)
+            Divider()
             ForEach(viewModel.availableNamespaces, id: \.self) { ns in
                 Text(ns).tag(ns)
             }
