@@ -31,12 +31,6 @@ struct StatusSummaryBar: View {
                     count: viewModel.failedJobCount,
                     kind: .jobs
                 )
-                chip(
-                    icon: "exclamationmark.bubble",
-                    label: "Events",
-                    count: viewModel.warningEventCount,
-                    kind: .events
-                )
 
                 Spacer()
 
@@ -83,9 +77,6 @@ struct StatusSummaryBar: View {
     }
 
     private func chipColor(for kind: ClusterViewModel.ResourceKind, count: Int) -> Color {
-        switch kind {
-        case .events: return .orange
-        default: return .red
-        }
+        .red
     }
 }

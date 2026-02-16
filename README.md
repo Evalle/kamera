@@ -44,7 +44,7 @@ Browse all major Kubernetes resources organized into logical groups:
 
 ### Cluster Health at a Glance
 
-A status bar shows live counts of unhealthy pods, unavailable deployments, failed jobs, unready nodes, and warning events &mdash; all color-coded so problems are immediately visible.
+A status bar shows live counts of unready nodes, unhealthy pods, unavailable deployments, and failed jobs &mdash; all color-coded so problems are immediately visible.
 
 ### Multi-Cluster & Namespace Switching
 
