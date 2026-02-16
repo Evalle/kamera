@@ -102,7 +102,7 @@ Grab the latest `Kamera.dmg` from the [Releases](../../releases) page, open it, 
 Requires **Xcode 16+** and **macOS 14.4+**.
 
 ```bash
-git clone https://github.com/your-username/Kamera.git
+git clone https://github.com/Evalle/kamera.git
 cd Kamera
 make dmg
 ```
