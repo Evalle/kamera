@@ -5,12 +5,13 @@ struct PodListView: View {
     @State private var selectedPod: Pod?
     @State private var searchText = ""
     @State private var showLogs = false
+    @State private var sortOrder = [KeyPathComparator(\Pod.name)]
 
     private var filteredPods: [Pod] {
-        if searchText.isEmpty { return viewModel.pods }
-        return viewModel.pods.filter {
+        let base = searchText.isEmpty ? viewModel.pods : viewModel.pods.filter {
             $0.name.localizedCaseInsensitiveContains(searchText)
         }
+        return base.sorted(using: sortOrder)
     }
 
     var body: some View {
@@ -52,20 +53,20 @@ struct PodListView: View {
         Table(filteredPods, selection: Binding(
             get: { selectedPod?.id },
             set: { id in selectedPod = filteredPods.first { $0.id == id } }
-        )) {
+        ), sortOrder: $sortOrder) {
             TableColumn("Status") { pod in
                 StatusBadge(status: pod.statusBadge)
             }
             .width(40)
 
             if viewModel.isAllNamespaces {
-                TableColumn("Namespace") { pod in
+                TableColumn("Namespace", sortUsing: KeyPathComparator(\.sortableNamespace)) { pod in
                     Text(pod.namespace ?? "-")
                 }
                 .width(100)
             }
 
-            TableColumn("Name") { pod in
+            TableColumn("Name", sortUsing: KeyPathComparator(\.name)) { pod in
                 Text(pod.name)
                     .fontWeight(pod.statusBadge == .error ? .medium : .regular)
             }
@@ -77,25 +78,25 @@ struct PodListView: View {
             }
             .width(50)
 
-            TableColumn("Status") { pod in
+            TableColumn("Status", sortUsing: KeyPathComparator(\.sortableStatus)) { pod in
                 Text(pod.statusText)
                     .foregroundStyle(pod.statusBadge == .error ? .red : .primary)
             }
             .width(min: 80, ideal: 120)
 
-            TableColumn("Restarts") { pod in
+            TableColumn("Restarts", sortUsing: KeyPathComparator(\.totalRestarts)) { pod in
                 Text("\(pod.totalRestarts)")
                     .monospacedDigit()
                     .foregroundStyle(pod.totalRestarts > 0 ? .orange : .primary)
             }
             .width(60)
 
-            TableColumn("Age") { pod in
+            TableColumn("Age", sortUsing: KeyPathComparator(\.sortableAge)) { pod in
                 Text(formatAge(from: pod.metadata.creationTimestamp))
             }
             .width(50)
 
-            TableColumn("Node") { pod in
+            TableColumn("Node", sortUsing: KeyPathComparator(\.sortableNode)) { pod in
                 Text(pod.spec?.nodeName ?? "-")
                     .foregroundStyle(.secondary)
             }

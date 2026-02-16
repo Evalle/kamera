@@ -4,10 +4,11 @@ struct PersistentVolumeClaimListView: View {
     @Environment(ClusterViewModel.self) private var viewModel
     @State private var selected: PersistentVolumeClaim?
     @State private var searchText = ""
+    @State private var sortOrder = [KeyPathComparator(\PersistentVolumeClaim.name)]
 
     private var filtered: [PersistentVolumeClaim] {
-        if searchText.isEmpty { return viewModel.persistentVolumeClaims }
-        return viewModel.persistentVolumeClaims.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+        let base = searchText.isEmpty ? viewModel.persistentVolumeClaims : viewModel.persistentVolumeClaims.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+        return base.sorted(using: sortOrder)
     }
 
     var body: some View {
@@ -15,25 +16,25 @@ struct PersistentVolumeClaimListView: View {
             Table(filtered, selection: Binding(
                 get: { selected?.id },
                 set: { id in selected = filtered.first { $0.id == id } }
-            )) {
+            ), sortOrder: $sortOrder) {
                 TableColumn("Status") { pvc in
                     StatusBadge(status: pvc.statusBadge)
                 }
                 .width(40)
 
                 if viewModel.isAllNamespaces {
-                    TableColumn("Namespace") { pvc in
+                    TableColumn("Namespace", sortUsing: KeyPathComparator(\.sortableNamespace)) { pvc in
                         Text(pvc.namespace ?? "-")
                     }
                     .width(100)
                 }
 
-                TableColumn("Name") { pvc in
+                TableColumn("Name", sortUsing: KeyPathComparator(\.name)) { pvc in
                     Text(pvc.name)
                 }
                 .width(min: 150, ideal: 200)
 
-                TableColumn("Phase") { pvc in
+                TableColumn("Phase", sortUsing: KeyPathComparator(\.sortablePhase)) { pvc in
                     Text(pvc.status?.phase ?? "-")
                 }
                 .width(70)
@@ -55,13 +56,13 @@ struct PersistentVolumeClaimListView: View {
                 }
                 .width(80)
 
-                TableColumn("Storage Class") { pvc in
+                TableColumn("Storage Class", sortUsing: KeyPathComparator(\.sortableStorageClass)) { pvc in
                     Text(pvc.spec?.storageClassName ?? "-")
                         .foregroundStyle(.secondary)
                 }
                 .width(min: 80, ideal: 120)
 
-                TableColumn("Age") { pvc in
+                TableColumn("Age", sortUsing: KeyPathComparator(\.sortableAge)) { pvc in
                     Text(formatAge(from: pvc.metadata.creationTimestamp))
                 }
                 .width(50)

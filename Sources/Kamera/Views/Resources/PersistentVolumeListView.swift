@@ -4,10 +4,11 @@ struct PersistentVolumeListView: View {
     @Environment(ClusterViewModel.self) private var viewModel
     @State private var selected: PersistentVolume?
     @State private var searchText = ""
+    @State private var sortOrder = [KeyPathComparator(\PersistentVolume.name)]
 
     private var filtered: [PersistentVolume] {
-        if searchText.isEmpty { return viewModel.persistentVolumes }
-        return viewModel.persistentVolumes.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+        let base = searchText.isEmpty ? viewModel.persistentVolumes : viewModel.persistentVolumes.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+        return base.sorted(using: sortOrder)
     }
 
     var body: some View {
@@ -15,13 +16,13 @@ struct PersistentVolumeListView: View {
             Table(filtered, selection: Binding(
                 get: { selected?.id },
                 set: { id in selected = filtered.first { $0.id == id } }
-            )) {
+            ), sortOrder: $sortOrder) {
                 TableColumn("Status") { pv in
                     StatusBadge(status: pv.statusBadge)
                 }
                 .width(40)
 
-                TableColumn("Name") { pv in
+                TableColumn("Name", sortUsing: KeyPathComparator(\.name)) { pv in
                     Text(pv.name)
                 }
                 .width(min: 150, ideal: 200)
@@ -42,12 +43,12 @@ struct PersistentVolumeListView: View {
                 }
                 .width(100)
 
-                TableColumn("Phase") { pv in
+                TableColumn("Phase", sortUsing: KeyPathComparator(\.sortablePhase)) { pv in
                     Text(pv.status?.phase ?? "-")
                 }
                 .width(70)
 
-                TableColumn("Storage Class") { pv in
+                TableColumn("Storage Class", sortUsing: KeyPathComparator(\.sortableStorageClass)) { pv in
                     Text(pv.spec?.storageClassName ?? "-")
                         .foregroundStyle(.secondary)
                 }
@@ -59,7 +60,7 @@ struct PersistentVolumeListView: View {
                 }
                 .width(min: 80, ideal: 150)
 
-                TableColumn("Age") { pv in
+                TableColumn("Age", sortUsing: KeyPathComparator(\.sortableAge)) { pv in
                     Text(formatAge(from: pv.metadata.creationTimestamp))
                 }
                 .width(50)

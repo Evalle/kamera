@@ -5,10 +5,11 @@ struct ConfigMapListView: View {
     @State private var selected: ConfigMap?
     @State private var searchText = ""
     @State private var detailTab: DetailTab = .overview
+    @State private var sortOrder = [KeyPathComparator(\ConfigMap.name)]
 
     private var filtered: [ConfigMap] {
-        if searchText.isEmpty { return viewModel.configMaps }
-        return viewModel.configMaps.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+        let base = searchText.isEmpty ? viewModel.configMaps : viewModel.configMaps.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+        return base.sorted(using: sortOrder)
     }
 
     var body: some View {
@@ -16,15 +17,15 @@ struct ConfigMapListView: View {
             Table(filtered, selection: Binding(
                 get: { selected?.id },
                 set: { id in selected = filtered.first { $0.id == id } }
-            )) {
+            ), sortOrder: $sortOrder) {
                 if viewModel.isAllNamespaces {
-                    TableColumn("Namespace") { cm in
+                    TableColumn("Namespace", sortUsing: KeyPathComparator(\.sortableNamespace)) { cm in
                         Text(cm.namespace ?? "-")
                     }.width(100)
                 }
-                TableColumn("Name") { cm in Text(cm.name) }.width(min: 150, ideal: 300)
-                TableColumn("Data") { cm in Text("\(cm.dataCount)").monospacedDigit() }.width(50)
-                TableColumn("Age") { cm in Text(formatAge(from: cm.metadata.creationTimestamp)) }.width(50)
+                TableColumn("Name", sortUsing: KeyPathComparator(\.name)) { cm in Text(cm.name) }.width(min: 150, ideal: 300)
+                TableColumn("Data", sortUsing: KeyPathComparator(\.dataCount)) { cm in Text("\(cm.dataCount)").monospacedDigit() }.width(50)
+                TableColumn("Age", sortUsing: KeyPathComparator(\.sortableAge)) { cm in Text(formatAge(from: cm.metadata.creationTimestamp)) }.width(50)
             }
             .frame(minWidth: 400)
 

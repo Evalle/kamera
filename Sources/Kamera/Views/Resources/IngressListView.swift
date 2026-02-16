@@ -5,10 +5,11 @@ struct IngressListView: View {
     @State private var selected: Ingress?
     @State private var searchText = ""
     @State private var detailTab: DetailTab = .overview
+    @State private var sortOrder = [KeyPathComparator(\Ingress.name)]
 
     private var filtered: [Ingress] {
-        if searchText.isEmpty { return viewModel.ingresses }
-        return viewModel.ingresses.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+        let base = searchText.isEmpty ? viewModel.ingresses : viewModel.ingresses.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+        return base.sorted(using: sortOrder)
     }
 
     var body: some View {
@@ -16,18 +17,18 @@ struct IngressListView: View {
             Table(filtered, selection: Binding(
                 get: { selected?.id },
                 set: { id in selected = filtered.first { $0.id == id } }
-            )) {
+            ), sortOrder: $sortOrder) {
                 if viewModel.isAllNamespaces {
-                    TableColumn("Namespace") { ing in
+                    TableColumn("Namespace", sortUsing: KeyPathComparator(\.sortableNamespace)) { ing in
                         Text(ing.namespace ?? "-")
                     }.width(100)
                 }
-                TableColumn("Name") { ing in Text(ing.name) }.width(min: 150, ideal: 200)
-                TableColumn("Class") { ing in Text(ing.spec?.ingressClassName ?? "-").foregroundStyle(.secondary) }.width(80)
+                TableColumn("Name", sortUsing: KeyPathComparator(\.name)) { ing in Text(ing.name) }.width(min: 150, ideal: 200)
+                TableColumn("Class", sortUsing: KeyPathComparator(\.sortableClass)) { ing in Text(ing.spec?.ingressClassName ?? "-").foregroundStyle(.secondary) }.width(80)
                 TableColumn("Hosts") { ing in Text(ing.hosts.joined(separator: ", ")).lineLimit(1) }.width(min: 100, ideal: 200)
                 TableColumn("Address") { ing in Text(ing.addresses.joined(separator: ", ")).monospacedDigit() }.width(min: 80, ideal: 120)
                 TableColumn("TLS") { ing in Text(ing.hasTLS ? "Yes" : "No") }.width(40)
-                TableColumn("Age") { ing in Text(formatAge(from: ing.metadata.creationTimestamp)) }.width(50)
+                TableColumn("Age", sortUsing: KeyPathComparator(\.sortableAge)) { ing in Text(formatAge(from: ing.metadata.creationTimestamp)) }.width(50)
             }
             .frame(minWidth: 400)
 

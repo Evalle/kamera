@@ -3,19 +3,24 @@ import SwiftUI
 struct NodeListView: View {
     @Environment(ClusterViewModel.self) private var viewModel
     @State private var selectedNode: Node?
+    @State private var sortOrder = [KeyPathComparator(\Node.name)]
+
+    private var sorted: [Node] {
+        viewModel.nodes.sorted(using: sortOrder)
+    }
 
     var body: some View {
         HSplitView {
-            Table(viewModel.nodes, selection: Binding(
+            Table(sorted, selection: Binding(
                 get: { selectedNode?.id },
-                set: { id in selectedNode = viewModel.nodes.first { $0.id == id } }
-            )) {
+                set: { id in selectedNode = sorted.first { $0.id == id } }
+            ), sortOrder: $sortOrder) {
                 TableColumn("Status") { node in
                     StatusBadge(status: node.isReady ? .healthy : .error)
                 }
                 .width(40)
 
-                TableColumn("Name") { node in
+                TableColumn("Name", sortUsing: KeyPathComparator(\.name)) { node in
                     Text(node.name)
                 }
                 .width(min: 150, ideal: 250)
@@ -26,7 +31,7 @@ struct NodeListView: View {
                 }
                 .width(120)
 
-                TableColumn("Version") { node in
+                TableColumn("Version", sortUsing: KeyPathComparator(\.sortableVersion)) { node in
                     Text(node.kubeletVersion ?? "-")
                 }
                 .width(100)
@@ -37,7 +42,7 @@ struct NodeListView: View {
                 }
                 .width(min: 100, ideal: 150)
 
-                TableColumn("Age") { node in
+                TableColumn("Age", sortUsing: KeyPathComparator(\.sortableAge)) { node in
                     Text(formatAge(from: node.metadata.creationTimestamp))
                 }
                 .width(50)

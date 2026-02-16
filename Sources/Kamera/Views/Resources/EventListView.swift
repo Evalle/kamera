@@ -5,14 +5,15 @@ struct EventListView: View {
     @State private var selected: Event?
     @State private var searchText = ""
     @State private var detailTab: DetailTab = .overview
+    @State private var sortOrder = [KeyPathComparator(\Event.sortableAge)]
 
     private var filtered: [Event] {
-        if searchText.isEmpty { return viewModel.events }
-        return viewModel.events.filter {
+        let base = searchText.isEmpty ? viewModel.events : viewModel.events.filter {
             ($0.reason ?? "").localizedCaseInsensitiveContains(searchText)
                 || ($0.message ?? "").localizedCaseInsensitiveContains(searchText)
                 || ($0.involvedObject?.name ?? "").localizedCaseInsensitiveContains(searchText)
         }
+        return base.sorted(using: sortOrder)
     }
 
     var body: some View {
@@ -20,18 +21,18 @@ struct EventListView: View {
             Table(filtered, selection: Binding(
                 get: { selected?.id },
                 set: { id in selected = filtered.first { $0.id == id } }
-            )) {
-                TableColumn("Type") { event in
+            ), sortOrder: $sortOrder) {
+                TableColumn("Type", sortUsing: KeyPathComparator(\.sortableType)) { event in
                     Image(systemName: event.isWarning ? "exclamationmark.triangle.fill" : "info.circle.fill")
                         .foregroundStyle(event.isWarning ? .orange : .blue)
                         .font(.caption)
                 }.width(30)
                 if viewModel.isAllNamespaces {
-                    TableColumn("Namespace") { event in
+                    TableColumn("Namespace", sortUsing: KeyPathComparator(\.sortableNamespace)) { event in
                         Text(event.namespace ?? "-")
                     }.width(100)
                 }
-                TableColumn("Reason") { event in
+                TableColumn("Reason", sortUsing: KeyPathComparator(\.sortableReason)) { event in
                     Text(event.reason ?? "-")
                 }.width(min: 80, ideal: 120)
                 TableColumn("Object") { event in
@@ -49,11 +50,11 @@ struct EventListView: View {
                     Text(event.message ?? "-")
                         .lineLimit(1)
                 }.width(min: 150, ideal: 300)
-                TableColumn("Count") { event in
+                TableColumn("Count", sortUsing: KeyPathComparator(\.sortableCount)) { event in
                     Text("\(event.count ?? 1)")
                         .monospacedDigit()
                 }.width(40)
-                TableColumn("Age") { event in
+                TableColumn("Age", sortUsing: KeyPathComparator(\.sortableAge)) { event in
                     Text(event.age)
                 }.width(50)
             }

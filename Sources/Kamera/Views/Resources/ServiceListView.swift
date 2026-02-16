@@ -4,12 +4,13 @@ struct ServiceListView: View {
     @Environment(ClusterViewModel.self) private var viewModel
     @State private var selectedService: Service?
     @State private var searchText = ""
+    @State private var sortOrder = [KeyPathComparator(\Service.name)]
 
     private var filtered: [Service] {
-        if searchText.isEmpty { return viewModel.services }
-        return viewModel.services.filter {
+        let base = searchText.isEmpty ? viewModel.services : viewModel.services.filter {
             $0.name.localizedCaseInsensitiveContains(searchText)
         }
+        return base.sorted(using: sortOrder)
     }
 
     var body: some View {
@@ -17,20 +18,20 @@ struct ServiceListView: View {
             Table(filtered, selection: Binding(
                 get: { selectedService?.id },
                 set: { id in selectedService = filtered.first { $0.id == id } }
-            )) {
+            ), sortOrder: $sortOrder) {
                 if viewModel.isAllNamespaces {
-                    TableColumn("Namespace") { svc in
+                    TableColumn("Namespace", sortUsing: KeyPathComparator(\.sortableNamespace)) { svc in
                         Text(svc.namespace ?? "-")
                     }
                     .width(100)
                 }
 
-                TableColumn("Name") { svc in
+                TableColumn("Name", sortUsing: KeyPathComparator(\.name)) { svc in
                     Text(svc.name)
                 }
                 .width(min: 150, ideal: 250)
 
-                TableColumn("Type") { svc in
+                TableColumn("Type", sortUsing: KeyPathComparator(\.sortableType)) { svc in
                     Text(svc.spec?.type ?? "-")
                         .foregroundStyle(.secondary)
                 }
@@ -48,7 +49,7 @@ struct ServiceListView: View {
                 }
                 .width(min: 100, ideal: 150)
 
-                TableColumn("Age") { svc in
+                TableColumn("Age", sortUsing: KeyPathComparator(\.sortableAge)) { svc in
                     Text(formatAge(from: svc.metadata.creationTimestamp))
                 }
                 .width(50)

@@ -4,12 +4,13 @@ struct DeploymentListView: View {
     @Environment(ClusterViewModel.self) private var viewModel
     @State private var selectedDeployment: Deployment?
     @State private var searchText = ""
+    @State private var sortOrder = [KeyPathComparator(\Deployment.name)]
 
     private var filtered: [Deployment] {
-        if searchText.isEmpty { return viewModel.deployments }
-        return viewModel.deployments.filter {
+        let base = searchText.isEmpty ? viewModel.deployments : viewModel.deployments.filter {
             $0.name.localizedCaseInsensitiveContains(searchText)
         }
+        return base.sorted(using: sortOrder)
     }
 
     var body: some View {
@@ -17,25 +18,25 @@ struct DeploymentListView: View {
             Table(filtered, selection: Binding(
                 get: { selectedDeployment?.id },
                 set: { id in selectedDeployment = filtered.first { $0.id == id } }
-            )) {
+            ), sortOrder: $sortOrder) {
                 TableColumn("Status") { dep in
                     StatusBadge(status: dep.isAvailable ? .healthy : .warning)
                 }
                 .width(40)
 
                 if viewModel.isAllNamespaces {
-                    TableColumn("Namespace") { dep in
+                    TableColumn("Namespace", sortUsing: KeyPathComparator(\.sortableNamespace)) { dep in
                         Text(dep.namespace ?? "-")
                     }
                     .width(100)
                 }
 
-                TableColumn("Name") { dep in
+                TableColumn("Name", sortUsing: KeyPathComparator(\.name)) { dep in
                     Text(dep.name)
                 }
                 .width(min: 150, ideal: 250)
 
-                TableColumn("Ready") { dep in
+                TableColumn("Ready", sortUsing: KeyPathComparator(\.sortableReady)) { dep in
                     Text(dep.readyCount)
                         .monospacedDigit()
                 }
@@ -47,13 +48,13 @@ struct DeploymentListView: View {
                 }
                 .width(80)
 
-                TableColumn("Available") { dep in
+                TableColumn("Available", sortUsing: KeyPathComparator(\.sortableAvailable)) { dep in
                     Text("\(dep.status?.availableReplicas ?? 0)")
                         .monospacedDigit()
                 }
                 .width(70)
 
-                TableColumn("Age") { dep in
+                TableColumn("Age", sortUsing: KeyPathComparator(\.sortableAge)) { dep in
                     Text(formatAge(from: dep.metadata.creationTimestamp))
                 }
                 .width(50)

@@ -26,6 +26,8 @@ extension KubernetesResource {
     var id: String { metadata.uid ?? "\(metadata.namespace ?? "")_\(metadata.name)" }
     var name: String { metadata.name }
     var namespace: String? { metadata.namespace }
+    var sortableNamespace: String { namespace ?? "" }
+    var sortableAge: String { metadata.creationTimestamp ?? "" }
 }
 
 // MARK: - Common Metadata
@@ -208,6 +210,13 @@ enum TargetPort: Decodable {
             self = .string(try container.decode(String.self))
         }
     }
+}
+
+// MARK: - Service Helpers
+
+extension Service {
+    var sortableType: String { spec?.type ?? "" }
+    var sortableClusterIP: String { spec?.clusterIP ?? "" }
 }
 
 // MARK: - Node
@@ -580,6 +589,10 @@ extension ClusterViewModel.ResourceKind {
 // MARK: - Event Helpers
 
 extension Event {
+    var sortableReason: String { reason ?? "" }
+    var sortableCount: Int { count ?? 0 }
+    var sortableType: String { type ?? "" }
+
     var isWarning: Bool { type == "Warning" }
 
     var involvedObjectDescription: String {
@@ -622,6 +635,9 @@ extension Pod {
         return "\(ready)/\(total)"
     }
 
+    var sortableStatus: String { statusText }
+    var sortableNode: String { spec?.nodeName ?? "" }
+
     var statusText: String {
         // Check for waiting containers (CrashLoopBackOff, ImagePullBackOff, etc.)
         if let statuses = status?.containerStatuses {
@@ -641,6 +657,9 @@ extension Pod {
 // MARK: - Deployment Helpers
 
 extension Deployment {
+    var sortableReady: Int { status?.readyReplicas ?? 0 }
+    var sortableAvailable: Int { status?.availableReplicas ?? 0 }
+
     var readyCount: String {
         let ready = status?.readyReplicas ?? 0
         let total = spec?.replicas ?? 0
@@ -656,6 +675,8 @@ extension Deployment {
 // MARK: - StatefulSet Helpers
 
 extension StatefulSet {
+    var sortableReady: Int { status?.readyReplicas ?? 0 }
+
     var readyCount: String {
         "\(status?.readyReplicas ?? 0)/\(spec?.replicas ?? 0)"
     }
@@ -669,6 +690,9 @@ extension StatefulSet {
 // MARK: - DaemonSet Helpers
 
 extension DaemonSet {
+    var sortableDesired: Int { status?.desiredNumberScheduled ?? 0 }
+    var sortableReady: Int { status?.numberReady ?? 0 }
+
     var isReady: Bool {
         let desired = status?.desiredNumberScheduled ?? 0
         return desired > 0 && (status?.numberReady ?? 0) >= desired
@@ -678,6 +702,8 @@ extension DaemonSet {
 // MARK: - ReplicaSet Helpers
 
 extension ReplicaSet {
+    var sortableReady: Int { status?.readyReplicas ?? 0 }
+
     var readyCount: String {
         "\(status?.readyReplicas ?? 0)/\(spec?.replicas ?? 0)"
     }
@@ -691,6 +717,8 @@ extension ReplicaSet {
 // MARK: - Job Helpers
 
 extension Job {
+    var sortableSucceeded: Int { status?.succeeded ?? 0 }
+
     var isComplete: Bool {
         status?.conditions?.contains { $0.type == "Complete" && $0.status == "True" } ?? false
     }
@@ -732,11 +760,14 @@ extension Job {
 extension CronJob {
     var isSuspended: Bool { spec?.suspend ?? false }
     var activeCount: Int { status?.active?.count ?? 0 }
+    var sortableSchedule: String { spec?.schedule ?? "" }
 }
 
 // MARK: - Ingress Helpers
 
 extension Ingress {
+    var sortableClass: String { spec?.ingressClassName ?? "" }
+
     var hosts: [String] {
         spec?.rules?.compactMap(\.host) ?? []
     }
@@ -759,12 +790,15 @@ extension ConfigMap {
 // MARK: - Secret Helpers
 
 extension Secret {
+    var sortableType: String { type ?? "" }
     var dataCount: Int { data?.count ?? 0 }
 }
 
 // MARK: - Node Helpers
 
 extension Node {
+    var sortableVersion: String { kubeletVersion ?? "" }
+
     var isReady: Bool {
         status?.conditions?.first { $0.type == "Ready" }?.status == "True"
     }
@@ -785,6 +819,9 @@ extension Node {
 // MARK: - PersistentVolume Helpers
 
 extension PersistentVolume {
+    var sortablePhase: String { status?.phase ?? "" }
+    var sortableStorageClass: String { spec?.storageClassName ?? "" }
+
     var capacity: String {
         spec?.capacity?["storage"] ?? "-"
     }
@@ -818,6 +855,9 @@ extension PersistentVolume {
 // MARK: - PersistentVolumeClaim Helpers
 
 extension PersistentVolumeClaim {
+    var sortablePhase: String { status?.phase ?? "" }
+    var sortableStorageClass: String { spec?.storageClassName ?? "" }
+
     var isBound: Bool {
         status?.phase == "Bound"
     }
