@@ -25,6 +25,16 @@ targets:
         CODE_SIGN_ENTITLEMENTS: Support/Kamera.entitlements
         CODE_SIGN_STYLE: Automatic
         MACOSX_DEPLOYMENT_TARGET: "14.4"
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+    postBuildScripts:
+      - script: |
+          PLIST="${TARGET_BUILD_DIR}/${INFOPLIST_PATH}"
+          GIT_TAG=$(git -C "${PROJECT_DIR}" describe --tags --abbrev=0 2>/dev/null || echo "0.1.0")
+          VERSION="${GIT_TAG#v}"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${VERSION}" "${PLIST}"
+        name: Set Version from Git Tag
+        basedOnDependencyAnalysis: false
     dependencies:
       - package: Yams
   KameraTests:

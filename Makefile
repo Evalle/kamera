@@ -1,16 +1,18 @@
 .PHONY: build run clean generate test dmg
 
+GIT_VERSION := $(shell git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || echo "0.1.0")
+
 # Generate Xcode project using XcodeGen
 generate:
 	xcodegen generate
 
 # Build the app via xcodebuild
 build: generate
-	xcodebuild -project Kamera.xcodeproj -scheme Kamera -configuration Debug build
+	xcodebuild -project Kamera.xcodeproj -scheme Kamera -configuration Debug MARKETING_VERSION=$(GIT_VERSION) build
 
 # Build release
 release: generate
-	xcodebuild -project Kamera.xcodeproj -scheme Kamera -configuration Release build
+	xcodebuild -project Kamera.xcodeproj -scheme Kamera -configuration Release MARKETING_VERSION=$(GIT_VERSION) build
 
 # Run tests
 test: generate
@@ -31,6 +33,7 @@ dmg: generate
 	xcodebuild -project $(APP_NAME).xcodeproj -scheme $(APP_NAME) \
 		-configuration Release \
 		-derivedDataPath $(BUILD_DIR)/DerivedData \
+		MARKETING_VERSION=$(GIT_VERSION) \
 		build
 	@echo "Creating DMG..."
 	@rm -f $(BUILD_DIR)/$(DMG_NAME)
