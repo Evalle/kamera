@@ -46,6 +46,10 @@ Browse all major Kubernetes resources organized into logical groups:
 
 A status bar shows live counts of unready nodes, unhealthy pods, unavailable deployments, and failed jobs &mdash; all color-coded so problems are immediately visible.
 
+### Custom Kubeconfig Path
+
+Open **Settings** (`Cmd + ,`) to pick a kubeconfig file from any location. The choice is persisted across launches. Reset to default to fall back to `~/.kube/config` (or `$KUBECONFIG`).
+
 ### Multi-Cluster & Namespace Switching
 
 Switch between contexts and namespaces from the sidebar. Supports **All Namespaces** mode to view resources across the entire cluster.
@@ -85,6 +89,7 @@ Configurable auto-refresh at 15s, 30s, or 60s intervals to keep data current wit
 
 | Shortcut | Action |
 |----------|--------|
+| `Cmd + ,` | Open Settings |
 | `Cmd + R` | Refresh resources |
 | `Cmd + K` | Quick search |
 | `Cmd + Up` | Previous resource kind |

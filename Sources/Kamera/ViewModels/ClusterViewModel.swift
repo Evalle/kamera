@@ -6,6 +6,8 @@ import SwiftUI
 @MainActor
 @Observable
 final class ClusterViewModel {
+    @ObservationIgnored
+    @AppStorage("kubeConfigPath") var kubeConfigPath: String = ""
     // All-namespaces sentinel
     static let allNamespaces = ""
 
@@ -143,7 +145,10 @@ final class ClusterViewModel {
 
     func loadConfig() {
         do {
-            let config = try KubeConfig.load()
+            let url = kubeConfigPath.isEmpty
+                ? KubeConfig.defaultConfigURL
+                : URL(fileURLWithPath: kubeConfigPath)
+            let config = try KubeConfig.load(from: url)
             self.kubeConfig = config
             self.connectionError = nil
 
