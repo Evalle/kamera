@@ -143,29 +143,6 @@ swift build
 swift test
 ```
 
-## Architecture
-
-Kamera is a single-target SwiftUI app with no external dependencies beyond [Yams](https://github.com/jpsim/Yams) for kubeconfig YAML parsing.
-
-```
-Sources/Kamera/
-  App.swift                       # Entry point
-  Models/
-    KubeConfig.swift              # ~/.kube/config parsing
-    Resources.swift               # All K8s resource types + computed helpers
-    WatchEvent.swift              # Watch API event model
-  ViewModels/
-    ClusterViewModel.swift        # Central state: resources, health, search, navigation
-  Services/
-    AuthProvider.swift            # Token, cert, and exec auth
-    KubernetesClient.swift        # HTTP client for K8s API
-  Views/
-    Sidebar/SidebarView.swift     # Context/namespace pickers + resource nav
-    Resources/*.swift             # 15 resource list + detail views
-    Logs/LogStreamView.swift      # Live pod log streaming
-    Common/                       # Shared components (StatusBadge, QuickSearch, etc.)
-```
-
 ## License
 
 [MIT](LICENSE)
