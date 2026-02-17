@@ -59,36 +59,39 @@ struct SidebarView: View {
                 }
             }
             .listStyle(.sidebar)
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                VStack(spacing: 0) {
+                    Divider()
+                    HStack(spacing: 4) {
+                        Button {
+                            Task { await viewModel.refreshResources() }
+                        } label: {
+                            Image(systemName: "arrow.clockwise")
+                        }
+                        .buttonStyle(.borderless)
+                        .help("Refresh resources")
+                        .disabled(!viewModel.isConnected)
 
-            Divider()
+                        Picker("Auto-refresh", selection: Binding(
+                            get: { viewModel.autoRefreshInterval },
+                            set: { viewModel.setAutoRefreshInterval($0) }
+                        )) {
+                            ForEach(ClusterViewModel.AutoRefreshInterval.allCases) { interval in
+                                Text(interval.label).tag(interval)
+                            }
+                        }
+                        .labelsHidden()
+                        .frame(width: 60)
+                        .help("Auto-refresh interval")
+                        .disabled(!viewModel.isConnected)
 
-            HStack(spacing: 4) {
-                Button {
-                    Task { await viewModel.refreshResources() }
-                } label: {
-                    Image(systemName: "arrow.clockwise")
-                }
-                .buttonStyle(.borderless)
-                .help("Refresh resources")
-                .disabled(!viewModel.isConnected)
-
-                Picker("Auto-refresh", selection: Binding(
-                    get: { viewModel.autoRefreshInterval },
-                    set: { viewModel.setAutoRefreshInterval($0) }
-                )) {
-                    ForEach(ClusterViewModel.AutoRefreshInterval.allCases) { interval in
-                        Text(interval.label).tag(interval)
+                        Spacer()
                     }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(.bar)
                 }
-                .labelsHidden()
-                .frame(width: 60)
-                .help("Auto-refresh interval")
-                .disabled(!viewModel.isConnected)
-
-                Spacer()
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
         } // end VStack
     }
 
