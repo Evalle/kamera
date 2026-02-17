@@ -60,7 +60,7 @@ final class KubernetesClient: NSObject, @unchecked Sendable {
         let keyPEM: Data?
 
         if let b64 = userInfo.clientCertificateData {
-            certPEM = Data(base64Encoded: b64)
+            certPEM = Data(base64Encoded: b64, options: .ignoreUnknownCharacters)
         } else if let path = userInfo.clientCertificate {
             certPEM = try? Data(contentsOf: URL(fileURLWithPath: (path as NSString).expandingTildeInPath))
         } else {
@@ -68,7 +68,7 @@ final class KubernetesClient: NSObject, @unchecked Sendable {
         }
 
         if let b64 = userInfo.clientKeyData {
-            keyPEM = Data(base64Encoded: b64)
+            keyPEM = Data(base64Encoded: b64, options: .ignoreUnknownCharacters)
         } else if let path = userInfo.clientKey {
             keyPEM = try? Data(contentsOf: URL(fileURLWithPath: (path as NSString).expandingTildeInPath))
         } else {
@@ -528,7 +528,7 @@ extension KubernetesClient: URLSessionDelegate {
 
     private func loadCARawData() -> Data? {
         if let b64 = clusterConfig.certificateAuthorityData {
-            return Data(base64Encoded: b64)
+            return Data(base64Encoded: b64, options: .ignoreUnknownCharacters)
         }
         if let path = clusterConfig.certificateAuthority {
             let expanded = (path as NSString).expandingTildeInPath
