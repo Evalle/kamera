@@ -75,6 +75,7 @@ extension KubeConfig {
         var clientKey: String?
         var clientKeyData: String?
         var exec: ExecConfig?
+        var authProvider: AuthProviderConfig?
 
         enum CodingKeys: String, CodingKey {
             case token
@@ -83,7 +84,13 @@ extension KubeConfig {
             case clientKey = "client-key"
             case clientKeyData = "client-key-data"
             case exec
+            case authProvider = "auth-provider"
         }
+    }
+
+    struct AuthProviderConfig: Codable {
+        var name: String
+        var config: [String: String]?
     }
 
     struct ExecConfig: Codable {

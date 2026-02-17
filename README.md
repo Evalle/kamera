@@ -79,6 +79,7 @@ Configurable auto-refresh at 15s, 30s, or 60s intervals to keep data current wit
 - Bearer token
 - Client certificate (TLS mutual auth)
 - Exec-based credentials (e.g. `aws eks get-token`)
+- auth-provider (GKE gcp, OIDC)
 
 ## Keyboard Shortcuts
 

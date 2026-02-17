@@ -30,6 +30,11 @@ actor AuthProvider {
             return try await execToken(config: exec)
         }
 
+        // auth-provider based auth (GKE gcp, OIDC, etc.)
+        if let provider = userInfo.authProvider {
+            return try await authProviderToken(provider: provider)
+        }
+
         // Client cert auth is handled at the URLSession delegate level
         return nil
     }
@@ -115,6 +120,89 @@ actor AuthProvider {
         }
 
         return credential.status.token
+    }
+
+    // MARK: - Auth-Provider Based Auth
+
+    private func authProviderToken(provider: KubeConfig.AuthProviderConfig) async throws -> String {
+        let config = provider.config ?? [:]
+
+        switch provider.name {
+        case "gcp":
+            // Use cached access-token if not expired
+            if let token = config["access-token"], let expiryStr = config["expiry"],
+               let expiry = ISO8601DateFormatter().date(from: expiryStr), Date() < expiry
+            {
+                return token
+            }
+            // Refresh via gcloud
+            return try await refreshGCPToken()
+
+        case "oidc":
+            if let token = config["id-token"] {
+                return token
+            }
+            throw KubernetesError.authenticationFailed(
+                "OIDC auth-provider has no id-token in config"
+            )
+
+        default:
+            // Generic fallback: try common token fields
+            if let token = config["access-token"] ?? config["token"] {
+                return token
+            }
+            throw KubernetesError.authenticationFailed(
+                "auth-provider '\(provider.name)' has no usable token in config"
+            )
+        }
+    }
+
+    private func refreshGCPToken() async throws -> String {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/bin/sh")
+        process.arguments = ["-l", "-c", "gcloud config config-helper --format=json"]
+
+        let stdout = Pipe()
+        let stderr = Pipe()
+        process.standardOutput = stdout
+        process.standardError = stderr
+
+        do {
+            try process.run()
+            process.waitUntilExit()
+        } catch {
+            throw KubernetesError.authenticationFailed(
+                "Failed to run gcloud: \(error.localizedDescription)"
+            )
+        }
+
+        guard process.terminationStatus == 0 else {
+            let errorData = stderr.fileHandleForReading.readDataToEndOfFile()
+            let errorMessage = String(data: errorData, encoding: .utf8)?.trimmingCharacters(
+                in: .whitespacesAndNewlines
+            ) ?? "unknown error"
+            throw KubernetesError.authenticationFailed(
+                "gcloud exited with code \(process.terminationStatus): \(errorMessage)"
+            )
+        }
+
+        let data = stdout.fileHandleForReading.readDataToEndOfFile()
+        guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let credential = json["credential"] as? [String: Any],
+              let token = credential["access_token"] as? String
+        else {
+            throw KubernetesError.authenticationFailed(
+                "Failed to parse access_token from gcloud config-helper output"
+            )
+        }
+
+        // Cache the refreshed token
+        cachedExecToken = token
+        if let expiryStr = credential["token_expiry"] as? String {
+            tokenExpiry = ISO8601DateFormatter().date(from: expiryStr)
+        }
+
+        return token
     }
 
     /// Shell-escape a string for safe use in sh -c

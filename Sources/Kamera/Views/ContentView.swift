@@ -70,6 +70,37 @@ struct ResourceDetailView: View {
                     .controlSize(.large)
             }
         }
+        .overlay(alignment: .top) {
+            if let error = viewModel.resourceError {
+                HStack(spacing: 8) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.white)
+                    Text(error)
+                        .foregroundStyle(.white)
+                        .lineLimit(2)
+                        .font(.callout)
+                    Spacer()
+                    Button("Retry") {
+                        Task { await viewModel.refreshResources() }
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(.white)
+                    Button {
+                        viewModel.resourceError = nil
+                    } label: {
+                        Image(systemName: "xmark")
+                            .foregroundStyle(.white)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(10)
+                .background(Color.red.opacity(0.85), in: RoundedRectangle(cornerRadius: 8))
+                .padding(.horizontal, 12)
+                .padding(.top, 8)
+                .transition(.move(edge: .top).combined(with: .opacity))
+            }
+        }
+        .animation(.easeInOut(duration: 0.25), value: viewModel.resourceError)
     }
 }
 
