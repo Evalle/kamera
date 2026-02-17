@@ -1,0 +1,688 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0319998C93A1E2ABDDEDD5B4 /* StatusSummaryBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5404246C054B8FCD5F6FAED9 /* StatusSummaryBar.swift */; };
+		065C65721E1972A98305DECA /* EventListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B903642CEB719144ADB31DD7 /* EventListView.swift */; };
+		0EE2737EB3B1CC885CD62F36 /* DaemonSetListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1179DB2DAAC73B2BD3461646 /* DaemonSetListView.swift */; };
+		1135D13C26D9E4328499050F /* RelatedEventsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D5BE4D2156A191385856E51 /* RelatedEventsSection.swift */; };
+		12CD608DDE046185EF37BB27 /* StatefulSetListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0B120D3CA87B652A0FD4C86 /* StatefulSetListView.swift */; };
+		202737A010CB8C96DE941B55 /* ReplicaSetListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 307A7F67204285B002BF3099 /* ReplicaSetListView.swift */; };
+		2CECB8C88FF0033FADED7E67 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0E73596638C05B4A9C07A22 /* SidebarView.swift */; };
+		36A2FE3E05DF4BC169A9E27B /* RawResourceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00FEF55F3D3CDAA6B0384AA /* RawResourceView.swift */; };
+		3B8EE87C79B6A96FE6F16B32 /* Resources.swift in Sources */ = {isa = PBXBuildFile; fileRef = D11151C102E9F7A6159FD131 /* Resources.swift */; };
+		3E47D89C7B024D9CC4E4D704 /* AuthProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FDCC6B877526C718BCD3F4A /* AuthProvider.swift */; };
+		566EA90C0B3994F76F5CA9B3 /* WatchEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 231EE66387335BAE925004B8 /* WatchEvent.swift */; };
+		5860CA08F79536463D13568F /* ResourceLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C90230CFDCA98A5FB424BDF /* ResourceLink.swift */; };
+		5BC37107A02B279AEC19C764 /* KubeConfigTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2E90BFCCCBA7026D2BC59ED /* KubeConfigTests.swift */; };
+		6140D2B2B8075E3E1C271E16 /* ClusterViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67DE851EF75BA9BF3125D7E9 /* ClusterViewModelTests.swift */; };
+		70C9180746A7F7F371F705CC /* StatusBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18F8410BED802B74CCD831E2 /* StatusBadge.swift */; };
+		802C097E369DF2C468AECDB0 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BEC9A48D90272C37BE1C562 /* App.swift */; };
+		87B8C62A9851CA2D3AD97063 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 31E893B029B3B2A3FBF993E7 /* Assets.xcassets */; };
+		88CC2F0042AB8B9F50E6BA63 /* KubernetesClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE2B9398DE363D23BA2912C9 /* KubernetesClient.swift */; };
+		8D65BBBB339C530ECA50A656 /* TestFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = B146C77018DD1D2B281053D2 /* TestFixtures.swift */; };
+		8E02036691032D513E9602A1 /* QuickSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 886D091D9F917FE045F7C1DA /* QuickSearchView.swift */; };
+		909059048136C254EFAFE06B /* Yams in Frameworks */ = {isa = PBXBuildFile; productRef = F481A95B0B972B906AAE1AFA /* Yams */; };
+		91FDD0917CDF681003F22369 /* ClusterViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D964F340FE6CF9764E5E5FA /* ClusterViewModel.swift */; };
+		956C65EEDC722D5573421A80 /* JobListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 538278713E8EDC540174CF9F /* JobListView.swift */; };
+		985136357BA08A3B348CEB81 /* SecretListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8D0DE00CF8B338EE113B6F7 /* SecretListView.swift */; };
+		A7C21AABF759840B21ED08D1 /* PodListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64EF4BD8E894BAB1872C0A53 /* PodListView.swift */; };
+		AA3633527383C72B3FF35EEE /* KubeConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB0B22590CEDF1A726590519 /* KubeConfig.swift */; };
+		AEBCF8C30581873402F99AE9 /* ConfigMapListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFE1B4FBFD096E42FE9E8DB9 /* ConfigMapListView.swift */; };
+		AF3CBD56E4EB908BFEF58A3C /* LogStreamView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48CB054CC46B2E08766DFCA5 /* LogStreamView.swift */; };
+		C3B49AE7BD1DB57759D08046 /* ResourceTreeSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6D0C3FA02EA971BAEF6FAC /* ResourceTreeSection.swift */; };
+		CFB1A77BFD594B54A2B82965 /* PersistentVolumeListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FE120DC05840BB336B41A8B /* PersistentVolumeListView.swift */; };
+		D0E6239AEB72AA003EE2D433 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CD3FE832571C0D21F705387 /* ContentView.swift */; };
+		D43835C4F497A4DB443FADA7 /* CronJobListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5997E1C67C66D520192433BE /* CronJobListView.swift */; };
+		D766EEDB68FC9DD3DAA3E07E /* ResourceModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9C33820F0C58BEE282FA7E3 /* ResourceModelTests.swift */; };
+		E2B0B4B4B9CC4F9F493112A7 /* PersistentVolumeClaimListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 074912EF4A94D7F4838ED77D /* PersistentVolumeClaimListView.swift */; };
+		EFB339A01E2ABB4CBED9F1DD /* ServiceListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4D2C144E72CDCCAE0777D90 /* ServiceListView.swift */; };
+		F051751751D0DFB7525650D8 /* IngressListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87824F9DF0DD89F90AB8B77A /* IngressListView.swift */; };
+		F21F46FA921D5546E7F88204 /* NodeListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13A29DDBDAED1482614F9814 /* NodeListView.swift */; };
+		F34FDBF80D6817DBD7DAC430 /* DeploymentListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42943B93D45B9AFB87F4B0B7 /* DeploymentListView.swift */; };
+		F7A1B2C3D4E5F60718293A4B /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6071829304A5B /* SettingsView.swift */; };
+		B2A1C3D4E5F6071829304A5C /* ShellHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3B2D4E5F6071829304A5B6C /* ShellHelper.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		B8C62857D32E43E86235E5D4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8F87410D14C4D8EE34CBCD91 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5BFF05A38384C53E4135E629;
+			remoteInfo = Kamera;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		074912EF4A94D7F4838ED77D /* PersistentVolumeClaimListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistentVolumeClaimListView.swift; sourceTree = "<group>"; };
+		1179DB2DAAC73B2BD3461646 /* DaemonSetListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DaemonSetListView.swift; sourceTree = "<group>"; };
+		13A29DDBDAED1482614F9814 /* NodeListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeListView.swift; sourceTree = "<group>"; };
+		18F8410BED802B74CCD831E2 /* StatusBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBadge.swift; sourceTree = "<group>"; };
+		231EE66387335BAE925004B8 /* WatchEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchEvent.swift; sourceTree = "<group>"; };
+		2C90230CFDCA98A5FB424BDF /* ResourceLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResourceLink.swift; sourceTree = "<group>"; };
+		2D964F340FE6CF9764E5E5FA /* ClusterViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClusterViewModel.swift; sourceTree = "<group>"; };
+		307A7F67204285B002BF3099 /* ReplicaSetListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplicaSetListView.swift; sourceTree = "<group>"; };
+		31E893B029B3B2A3FBF993E7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		343AE5E218A3719AF11DF069 /* KameraTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KameraTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		3F6D0C3FA02EA971BAEF6FAC /* ResourceTreeSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResourceTreeSection.swift; sourceTree = "<group>"; };
+		3FDCC6B877526C718BCD3F4A /* AuthProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthProvider.swift; sourceTree = "<group>"; };
+		42943B93D45B9AFB87F4B0B7 /* DeploymentListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeploymentListView.swift; sourceTree = "<group>"; };
+		48CB054CC46B2E08766DFCA5 /* LogStreamView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogStreamView.swift; sourceTree = "<group>"; };
+		4D5BE4D2156A191385856E51 /* RelatedEventsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RelatedEventsSection.swift; sourceTree = "<group>"; };
+		538278713E8EDC540174CF9F /* JobListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobListView.swift; sourceTree = "<group>"; };
+		5404246C054B8FCD5F6FAED9 /* StatusSummaryBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusSummaryBar.swift; sourceTree = "<group>"; };
+		5997E1C67C66D520192433BE /* CronJobListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CronJobListView.swift; sourceTree = "<group>"; };
+		5C972FBB807994338604C530 /* Kamera.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Kamera.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		64EF4BD8E894BAB1872C0A53 /* PodListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodListView.swift; sourceTree = "<group>"; };
+		67DE851EF75BA9BF3125D7E9 /* ClusterViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClusterViewModelTests.swift; sourceTree = "<group>"; };
+		6CD3FE832571C0D21F705387 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		7BEC9A48D90272C37BE1C562 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
+		87824F9DF0DD89F90AB8B77A /* IngressListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IngressListView.swift; sourceTree = "<group>"; };
+		886D091D9F917FE045F7C1DA /* QuickSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickSearchView.swift; sourceTree = "<group>"; };
+		8FE120DC05840BB336B41A8B /* PersistentVolumeListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistentVolumeListView.swift; sourceTree = "<group>"; };
+		A00FEF55F3D3CDAA6B0384AA /* RawResourceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RawResourceView.swift; sourceTree = "<group>"; };
+		A4D2C144E72CDCCAE0777D90 /* ServiceListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceListView.swift; sourceTree = "<group>"; };
+		A9C33820F0C58BEE282FA7E3 /* ResourceModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResourceModelTests.swift; sourceTree = "<group>"; };
+		AFE1B4FBFD096E42FE9E8DB9 /* ConfigMapListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigMapListView.swift; sourceTree = "<group>"; };
+		B0B120D3CA87B652A0FD4C86 /* StatefulSetListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatefulSetListView.swift; sourceTree = "<group>"; };
+		B146C77018DD1D2B281053D2 /* TestFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestFixtures.swift; sourceTree = "<group>"; };
+		B903642CEB719144ADB31DD7 /* EventListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventListView.swift; sourceTree = "<group>"; };
+		C0E73596638C05B4A9C07A22 /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
+		C8D0DE00CF8B338EE113B6F7 /* SecretListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecretListView.swift; sourceTree = "<group>"; };
+		D11151C102E9F7A6159FD131 /* Resources.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Resources.swift; sourceTree = "<group>"; };
+		D2E90BFCCCBA7026D2BC59ED /* KubeConfigTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KubeConfigTests.swift; sourceTree = "<group>"; };
+		EB0B22590CEDF1A726590519 /* KubeConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KubeConfig.swift; sourceTree = "<group>"; };
+		EE2B9398DE363D23BA2912C9 /* KubernetesClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KubernetesClient.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6071829304A5B /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		C3B2D4E5F6071829304A5B6C /* ShellHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellHelper.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		35C0F7262F78E8831A55766C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				909059048136C254EFAFE06B /* Yams in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0226C193C3C0747BEE8D7F88 = {
+			isa = PBXGroup;
+			children = (
+				3F3D2828C8195450AD8D64BC /* Sources */,
+				271A280C52390249CD7A5518 /* Tests */,
+				7AB3977B54017FF282C6E321 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		125EC669A13395900835F791 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				AFE1B4FBFD096E42FE9E8DB9 /* ConfigMapListView.swift */,
+				5997E1C67C66D520192433BE /* CronJobListView.swift */,
+				1179DB2DAAC73B2BD3461646 /* DaemonSetListView.swift */,
+				42943B93D45B9AFB87F4B0B7 /* DeploymentListView.swift */,
+				B903642CEB719144ADB31DD7 /* EventListView.swift */,
+				87824F9DF0DD89F90AB8B77A /* IngressListView.swift */,
+				538278713E8EDC540174CF9F /* JobListView.swift */,
+				13A29DDBDAED1482614F9814 /* NodeListView.swift */,
+				074912EF4A94D7F4838ED77D /* PersistentVolumeClaimListView.swift */,
+				8FE120DC05840BB336B41A8B /* PersistentVolumeListView.swift */,
+				64EF4BD8E894BAB1872C0A53 /* PodListView.swift */,
+				307A7F67204285B002BF3099 /* ReplicaSetListView.swift */,
+				C8D0DE00CF8B338EE113B6F7 /* SecretListView.swift */,
+				A4D2C144E72CDCCAE0777D90 /* ServiceListView.swift */,
+				B0B120D3CA87B652A0FD4C86 /* StatefulSetListView.swift */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		271A280C52390249CD7A5518 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				CB9C90F5C7E9EC4E45603030 /* KameraTests */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		29F57512846A4E6438996343 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				EB0B22590CEDF1A726590519 /* KubeConfig.swift */,
+				D11151C102E9F7A6159FD131 /* Resources.swift */,
+				231EE66387335BAE925004B8 /* WatchEvent.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		37392F678D9411F86E937340 /* Logs */ = {
+			isa = PBXGroup;
+			children = (
+				48CB054CC46B2E08766DFCA5 /* LogStreamView.swift */,
+			);
+			path = Logs;
+			sourceTree = "<group>";
+		};
+		387B88F3880FA62B648921AF /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				2D964F340FE6CF9764E5E5FA /* ClusterViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		3F3D2828C8195450AD8D64BC /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				952CD699E08104831337C28F /* Kamera */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		551B848724E0A2E4A662C4EF /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				3FDCC6B877526C718BCD3F4A /* AuthProvider.swift */,
+				EE2B9398DE363D23BA2912C9 /* KubernetesClient.swift */,
+				C3B2D4E5F6071829304A5B6C /* ShellHelper.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		59AB52E4C117C1F743887107 /* Sidebar */ = {
+			isa = PBXGroup;
+			children = (
+				C0E73596638C05B4A9C07A22 /* SidebarView.swift */,
+			);
+			path = Sidebar;
+			sourceTree = "<group>";
+		};
+		7AB3977B54017FF282C6E321 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				5C972FBB807994338604C530 /* Kamera.app */,
+				343AE5E218A3719AF11DF069 /* KameraTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		952CD699E08104831337C28F /* Kamera */ = {
+			isa = PBXGroup;
+			children = (
+				7BEC9A48D90272C37BE1C562 /* App.swift */,
+				31E893B029B3B2A3FBF993E7 /* Assets.xcassets */,
+				29F57512846A4E6438996343 /* Models */,
+				551B848724E0A2E4A662C4EF /* Services */,
+				387B88F3880FA62B648921AF /* ViewModels */,
+				A0E9469E1845A33BD7AC83B8 /* Views */,
+			);
+			path = Kamera;
+			sourceTree = "<group>";
+		};
+		A0E9469E1845A33BD7AC83B8 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				6CD3FE832571C0D21F705387 /* ContentView.swift */,
+				A1B2C3D4E5F6071829304A5B /* SettingsView.swift */,
+				AE1697768818AC901BCAEB4A /* Common */,
+				37392F678D9411F86E937340 /* Logs */,
+				125EC669A13395900835F791 /* Resources */,
+				59AB52E4C117C1F743887107 /* Sidebar */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		AE1697768818AC901BCAEB4A /* Common */ = {
+			isa = PBXGroup;
+			children = (
+				886D091D9F917FE045F7C1DA /* QuickSearchView.swift */,
+				A00FEF55F3D3CDAA6B0384AA /* RawResourceView.swift */,
+				4D5BE4D2156A191385856E51 /* RelatedEventsSection.swift */,
+				2C90230CFDCA98A5FB424BDF /* ResourceLink.swift */,
+				3F6D0C3FA02EA971BAEF6FAC /* ResourceTreeSection.swift */,
+				18F8410BED802B74CCD831E2 /* StatusBadge.swift */,
+				5404246C054B8FCD5F6FAED9 /* StatusSummaryBar.swift */,
+			);
+			path = Common;
+			sourceTree = "<group>";
+		};
+		CB9C90F5C7E9EC4E45603030 /* KameraTests */ = {
+			isa = PBXGroup;
+			children = (
+				67DE851EF75BA9BF3125D7E9 /* ClusterViewModelTests.swift */,
+				D2E90BFCCCBA7026D2BC59ED /* KubeConfigTests.swift */,
+				A9C33820F0C58BEE282FA7E3 /* ResourceModelTests.swift */,
+				B146C77018DD1D2B281053D2 /* TestFixtures.swift */,
+			);
+			path = KameraTests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		5BFF05A38384C53E4135E629 /* Kamera */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BD8BF7C21A89893EB4371C9F /* Build configuration list for PBXNativeTarget "Kamera" */;
+			buildPhases = (
+				0C2F812A222B77FC4E9B475C /* Sources */,
+				6FBDC3EE4113C776A8C62623 /* Resources */,
+				35C0F7262F78E8831A55766C /* Frameworks */,
+				C4F70D536F9175A6F4CD6464 /* Set Version from Git Tag */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Kamera;
+			packageProductDependencies = (
+				F481A95B0B972B906AAE1AFA /* Yams */,
+			);
+			productName = Kamera;
+			productReference = 5C972FBB807994338604C530 /* Kamera.app */;
+			productType = "com.apple.product-type.application";
+		};
+		7CB61D05444A35B0235209DB /* KameraTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D22C2D1C0C58CA03F002F948 /* Build configuration list for PBXNativeTarget "KameraTests" */;
+			buildPhases = (
+				8347FD4CD15BA886E8CDB1F0 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				FADF2A223D75A3C1EABA52E3 /* PBXTargetDependency */,
+			);
+			name = KameraTests;
+			packageProductDependencies = (
+			);
+			productName = KameraTests;
+			productReference = 343AE5E218A3719AF11DF069 /* KameraTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		8F87410D14C4D8EE34CBCD91 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					5BFF05A38384C53E4135E629 = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 2845ED2D10E81A4FF1387900 /* Build configuration list for PBXProject "Kamera" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 0226C193C3C0747BEE8D7F88;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				20A3B27193525DCAF5CD3418 /* XCRemoteSwiftPackageReference "Yams" */,
+			);
+			preferredProjectObjectVersion = 77;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				5BFF05A38384C53E4135E629 /* Kamera */,
+				7CB61D05444A35B0235209DB /* KameraTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		6FBDC3EE4113C776A8C62623 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				87B8C62A9851CA2D3AD97063 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		C4F70D536F9175A6F4CD6464 /* Set Version from Git Tag */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Set Version from Git Tag";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "PLIST=\"${TARGET_BUILD_DIR}/${INFOPLIST_PATH}\"\nGIT_TAG=$(git -C \"${PROJECT_DIR}\" describe --tags --abbrev=0 2>/dev/null || echo \"0.1.0\")\nVERSION=\"${GIT_TAG#v}\"\n/usr/libexec/PlistBuddy -c \"Set :CFBundleShortVersionString ${VERSION}\" \"${PLIST}\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		0C2F812A222B77FC4E9B475C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				802C097E369DF2C468AECDB0 /* App.swift in Sources */,
+				3E47D89C7B024D9CC4E4D704 /* AuthProvider.swift in Sources */,
+				91FDD0917CDF681003F22369 /* ClusterViewModel.swift in Sources */,
+				AEBCF8C30581873402F99AE9 /* ConfigMapListView.swift in Sources */,
+				D0E6239AEB72AA003EE2D433 /* ContentView.swift in Sources */,
+				D43835C4F497A4DB443FADA7 /* CronJobListView.swift in Sources */,
+				0EE2737EB3B1CC885CD62F36 /* DaemonSetListView.swift in Sources */,
+				F34FDBF80D6817DBD7DAC430 /* DeploymentListView.swift in Sources */,
+				065C65721E1972A98305DECA /* EventListView.swift in Sources */,
+				F051751751D0DFB7525650D8 /* IngressListView.swift in Sources */,
+				956C65EEDC722D5573421A80 /* JobListView.swift in Sources */,
+				AA3633527383C72B3FF35EEE /* KubeConfig.swift in Sources */,
+				88CC2F0042AB8B9F50E6BA63 /* KubernetesClient.swift in Sources */,
+				AF3CBD56E4EB908BFEF58A3C /* LogStreamView.swift in Sources */,
+				F21F46FA921D5546E7F88204 /* NodeListView.swift in Sources */,
+				E2B0B4B4B9CC4F9F493112A7 /* PersistentVolumeClaimListView.swift in Sources */,
+				CFB1A77BFD594B54A2B82965 /* PersistentVolumeListView.swift in Sources */,
+				A7C21AABF759840B21ED08D1 /* PodListView.swift in Sources */,
+				8E02036691032D513E9602A1 /* QuickSearchView.swift in Sources */,
+				36A2FE3E05DF4BC169A9E27B /* RawResourceView.swift in Sources */,
+				1135D13C26D9E4328499050F /* RelatedEventsSection.swift in Sources */,
+				202737A010CB8C96DE941B55 /* ReplicaSetListView.swift in Sources */,
+				5860CA08F79536463D13568F /* ResourceLink.swift in Sources */,
+				C3B49AE7BD1DB57759D08046 /* ResourceTreeSection.swift in Sources */,
+				3B8EE87C79B6A96FE6F16B32 /* Resources.swift in Sources */,
+				985136357BA08A3B348CEB81 /* SecretListView.swift in Sources */,
+				EFB339A01E2ABB4CBED9F1DD /* ServiceListView.swift in Sources */,
+				F7A1B2C3D4E5F60718293A4B /* SettingsView.swift in Sources */,
+				B2A1C3D4E5F6071829304A5C /* ShellHelper.swift in Sources */,
+				2CECB8C88FF0033FADED7E67 /* SidebarView.swift in Sources */,
+				12CD608DDE046185EF37BB27 /* StatefulSetListView.swift in Sources */,
+				70C9180746A7F7F371F705CC /* StatusBadge.swift in Sources */,
+				0319998C93A1E2ABDDEDD5B4 /* StatusSummaryBar.swift in Sources */,
+				566EA90C0B3994F76F5CA9B3 /* WatchEvent.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8347FD4CD15BA886E8CDB1F0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6140D2B2B8075E3E1C271E16 /* ClusterViewModelTests.swift in Sources */,
+				5BC37107A02B279AEC19C764 /* KubeConfigTests.swift in Sources */,
+				D766EEDB68FC9DD3DAA3E07E /* ResourceModelTests.swift in Sources */,
+				8D65BBBB339C530ECA50A656 /* TestFixtures.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		FADF2A223D75A3C1EABA52E3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5BFF05A38384C53E4135E629 /* Kamera */;
+			targetProxy = B8C62857D32E43E86235E5D4 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		05495AE6E9562988692D724F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Support/Kamera.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = Support/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.4;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kamera.app;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		732852AA9EDFDFFF264CF51B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.4;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		7A0573AB54084027C88134FD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Support/Kamera.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = Support/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.4;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kamera.app;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		954E68966D980EDA70A031DF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.kamera.KameraTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Kamera.app/Contents/MacOS/Kamera";
+			};
+			name = Release;
+		};
+		BA6DE72C756DC70589A88117 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.4;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		E6D3588A6F2F05BDD3533CBA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.kamera.KameraTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Kamera.app/Contents/MacOS/Kamera";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		2845ED2D10E81A4FF1387900 /* Build configuration list for PBXProject "Kamera" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				732852AA9EDFDFFF264CF51B /* Debug */,
+				BA6DE72C756DC70589A88117 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		BD8BF7C21A89893EB4371C9F /* Build configuration list for PBXNativeTarget "Kamera" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7A0573AB54084027C88134FD /* Debug */,
+				05495AE6E9562988692D724F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		D22C2D1C0C58CA03F002F948 /* Build configuration list for PBXNativeTarget "KameraTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E6D3588A6F2F05BDD3533CBA /* Debug */,
+				954E68966D980EDA70A031DF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		20A3B27193525DCAF5CD3418 /* XCRemoteSwiftPackageReference "Yams" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/jpsim/Yams";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		F481A95B0B972B906AAE1AFA /* Yams */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 20A3B27193525DCAF5CD3418 /* XCRemoteSwiftPackageReference "Yams" */;
+			productName = Yams;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 8F87410D14C4D8EE34CBCD91 /* Project object */;
+}

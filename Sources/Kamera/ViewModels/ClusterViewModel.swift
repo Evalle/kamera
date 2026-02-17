@@ -378,7 +378,7 @@ final class ClusterViewModel {
 
         // Find kubectl path
         let whichProcess = Process()
-        whichProcess.executableURL = URL(fileURLWithPath: "/bin/sh")
+        whichProcess.executableURL = Shell.loginShellURL
         whichProcess.arguments = ["-l", "-c", "which kubectl"]
         let whichPipe = Pipe()
         whichProcess.standardOutput = whichPipe

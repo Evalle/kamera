@@ -71,7 +71,7 @@ actor AuthProvider {
         let process = Process()
         // Use login shell to get the user's full PATH
         // (macOS apps have a minimal PATH that won't include Homebrew, etc.)
-        process.executableURL = URL(fileURLWithPath: "/bin/sh")
+        process.executableURL = Shell.loginShellURL
         process.arguments = ["-l", "-c", fullCommand]
 
         // Set environment variables from exec config
@@ -159,7 +159,7 @@ actor AuthProvider {
 
     private func refreshGCPToken() async throws -> String {
         let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/bin/sh")
+        process.executableURL = Shell.loginShellURL
         process.arguments = ["-l", "-c", "gcloud config config-helper --format=json"]
 
         let stdout = Pipe()
