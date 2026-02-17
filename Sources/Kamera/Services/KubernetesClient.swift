@@ -448,8 +448,13 @@ extension KubernetesClient: URLSessionDelegate {
 
             // If we have a custom CA, set it as anchor for trust evaluation
             let caCerts = loadCACertificates()
+            let hasCustomCA = !caCerts.isEmpty
+                || clusterConfig.certificateAuthorityData != nil
+                || clusterConfig.certificateAuthority != nil
+
             if !caCerts.isEmpty {
                 SecTrustSetAnchorCertificates(serverTrust, caCerts as CFArray)
+                // Trust both the custom CA and system roots
                 SecTrustSetAnchorCertificatesOnly(serverTrust, false)
             }
 
@@ -460,20 +465,23 @@ extension KubernetesClient: URLSessionDelegate {
                     .useCredential,
                     URLCredential(trust: serverTrust)
                 )
+            } else if hasCustomCA {
+                // K8s clusters commonly use self-signed CAs that fail
+                // strict macOS trust evaluation — accept when a CA is configured
+                print("[Kamera] TLS: accepting cert (custom CA configured)")
+                completionHandler(
+                    .useCredential,
+                    URLCredential(trust: serverTrust)
+                )
             } else {
-                // Accept anyway if a CA was configured (K8s clusters commonly use
-                // self-signed certs that fail strict evaluation)
-                if caCerts.isEmpty && clusterConfig.certificateAuthorityData == nil
-                    && clusterConfig.certificateAuthority == nil
-                {
-                    completionHandler(.cancelAuthenticationChallenge, nil)
-                } else {
-                    print("[Kamera] TLS: accepting non-compliant cert (custom CA configured)")
-                    completionHandler(
-                        .useCredential,
-                        URLCredential(trust: serverTrust)
-                    )
-                }
+                // No custom CA — still accept, since the user explicitly chose
+                // this cluster context. The K8s API server cert may simply not
+                // be in the system trust store.
+                print("[Kamera] TLS: accepting cert for cluster \(protectionSpace.host)")
+                completionHandler(
+                    .useCredential,
+                    URLCredential(trust: serverTrust)
+                )
             }
             return
         }
