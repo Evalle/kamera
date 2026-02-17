@@ -57,11 +57,8 @@ struct SidebarView: View {
                     sidebarItem(.nodes, "Nodes", viewModel.nodes.count)
                     sidebarItem(.events, "Events", viewModel.events.count)
                 }
-            }
-            .listStyle(.sidebar)
-            .safeAreaInset(edge: .bottom, spacing: 0) {
-                VStack(spacing: 0) {
-                    Divider()
+
+                Section("Refresh") {
                     HStack(spacing: 4) {
                         Button {
                             Task { await viewModel.refreshResources() }
@@ -84,14 +81,10 @@ struct SidebarView: View {
                         .frame(width: 60)
                         .help("Auto-refresh interval")
                         .disabled(!viewModel.isConnected)
-
-                        Spacer()
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(.bar)
                 }
             }
+            .listStyle(.sidebar)
         } // end VStack
     }
 
