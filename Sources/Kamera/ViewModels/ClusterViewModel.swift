@@ -75,11 +75,12 @@ final class ClusterViewModel {
     }
 
     // Auto-refresh
-    var autoRefreshInterval: AutoRefreshInterval = .thirtySeconds
+    var autoRefreshInterval: AutoRefreshInterval = .twoSeconds
     private var refreshTask: Task<Void, Never>?
 
     enum AutoRefreshInterval: Double, CaseIterable, Identifiable {
         case off = 0
+        case twoSeconds = 2
         case fifteenSeconds = 15
         case thirtySeconds = 30
         case sixtySeconds = 60
@@ -89,6 +90,7 @@ final class ClusterViewModel {
         var label: String {
             switch self {
             case .off: return "Off"
+            case .twoSeconds: return "2s"
             case .fifteenSeconds: return "15s"
             case .thirtySeconds: return "30s"
             case .sixtySeconds: return "60s"
