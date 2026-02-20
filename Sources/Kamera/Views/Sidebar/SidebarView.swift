@@ -7,7 +7,7 @@ struct SidebarView: View {
         @Bindable var vm = viewModel
 
         VStack(spacing: 0) {
-            // Context & namespace pickers (outside List to avoid interaction issues)
+            // Context, namespace pickers & refresh controls
             VStack(alignment: .leading, spacing: 8) {
                 VStack(alignment: .leading, spacing: 3) {
                     Text("Context")
@@ -20,6 +20,33 @@ struct SidebarView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     namespacePicker
+                }
+                HStack(spacing: 4) {
+                    Text("Refresh")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Button {
+                        Task { await viewModel.refreshResources() }
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                    .buttonStyle(.borderless)
+                    .help("Refresh resources")
+                    .disabled(!viewModel.isConnected)
+
+                    Picker("Auto-refresh", selection: Binding(
+                        get: { viewModel.autoRefreshInterval },
+                        set: { viewModel.setAutoRefreshInterval($0) }
+                    )) {
+                        ForEach(ClusterViewModel.AutoRefreshInterval.allCases) { interval in
+                            Text(interval.label).tag(interval)
+                        }
+                    }
+                    .labelsHidden()
+                    .frame(width: 60)
+                    .help("Auto-refresh interval")
+                    .disabled(!viewModel.isConnected)
                 }
             }
             .padding(.horizontal, 12)
@@ -58,31 +85,7 @@ struct SidebarView: View {
                     sidebarItem(.events, "Events", viewModel.events.count)
                 }
 
-                Section("Refresh") {
-                    HStack(spacing: 4) {
-                        Button {
-                            Task { await viewModel.refreshResources() }
-                        } label: {
-                            Image(systemName: "arrow.clockwise")
-                        }
-                        .buttonStyle(.borderless)
-                        .help("Refresh resources")
-                        .disabled(!viewModel.isConnected)
 
-                        Picker("Auto-refresh", selection: Binding(
-                            get: { viewModel.autoRefreshInterval },
-                            set: { viewModel.setAutoRefreshInterval($0) }
-                        )) {
-                            ForEach(ClusterViewModel.AutoRefreshInterval.allCases) { interval in
-                                Text(interval.label).tag(interval)
-                            }
-                        }
-                        .labelsHidden()
-                        .frame(width: 60)
-                        .help("Auto-refresh interval")
-                        .disabled(!viewModel.isConnected)
-                    }
-                }
             }
             .listStyle(.sidebar)
         } // end VStack
