@@ -51,10 +51,6 @@ Browse all major Kubernetes resources organized into logical groups:
 | Jobs | | | | |
 | CronJobs | | | | |
 
-### Cluster Health at a Glance
-
-A status bar shows live counts of unready nodes, unhealthy pods, unavailable deployments, and failed jobs &mdash; all color-coded so problems are immediately visible.
-
 ### Custom Kubeconfig Path
 
 Open **Settings** (`Cmd + ,`) to pick a kubeconfig file from any location. The choice is persisted across launches. Reset to default to fall back to `~/.kube/config` (or `$KUBECONFIG`).
