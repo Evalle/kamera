@@ -95,11 +95,6 @@ View the full YAML/JSON definition of any resource with syntax highlighting and 
 
 Drill into any Deployment, StatefulSet, DaemonSet, Job, CronJob, or Node to see its child resources as an expandable tree (e.g. Deployment &rarr; ReplicaSets &rarr; Pods).
 
-<p align="center">
-  <img width="300" height="631" alt="Screenshot 2026-02-20 at 14 28 08" src="https://github.com/user-attachments/assets/20cb8efe-d777-445e-bb9c-1b64694d2e1e" />
-</p>
-
-
 ### Sortable Tables
 
 Click any column header to sort resource lists. Filter with the built-in search bar per resource view.
