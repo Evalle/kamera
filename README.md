@@ -27,7 +27,7 @@
 Kamera connects directly to your Kubernetes clusters using your `~/.kube/config` &mdash; no proxy, no browser, no Electron. It reads cluster and auth configuration natively and talks to the K8s API over HTTPS with full TLS and exec-based credential support.
 
 <p align="center">
-  <img width="1103" height="702" alt="Screenshot 2026-02-20 at 14 44 33" src="https://github.com/user-attachments/assets/44acdc1c-ddcd-4208-b310-5d790d69993c" />
+ <img width="1241" height="692" alt="Screenshot 2026-02-20 at 15 16 21" src="https://github.com/user-attachments/assets/cf2bb684-5c5c-428b-873a-632a91e7d1a9" />
 </p>
 
 
@@ -62,6 +62,9 @@ Open **Settings** (`Cmd + ,`) to pick a kubeconfig file from any location. The c
 ### Multi-Cluster & Namespace Switching
 
 Switch between contexts and namespaces from the sidebar. Supports **All Namespaces** mode to view resources across the entire cluster.
+<p align="center">
+  <img width="944" height="260" alt="Screenshot 2026-02-20 at 15 18 55" src="https://github.com/user-attachments/assets/663c0e5a-0c0a-4b6f-98fe-c9134e313dac" />
+</p>
 
 ### Quick Search
 
@@ -76,7 +79,7 @@ Press **Cmd+K** to open a Spotlight-style search that finds resources by name ac
 Stream logs from any container in real-time with search filtering and auto-scroll.
 
 <p align="center">
-  <img width="604" height="660" alt="Screenshot 2026-02-20 at 14 26 35" src="https://github.com/user-attachments/assets/da4903fd-0baf-4030-b19b-e6b09e28d3a2" />
+  <img width="595" height="657" alt="Screenshot 2026-02-20 at 15 17 24" src="https://github.com/user-attachments/assets/ad3d70d9-f286-420c-9f15-7833d1c3852f" />
 </p>
 
 ### YAML Inspector
@@ -90,6 +93,9 @@ View the full YAML/JSON definition of any resource with syntax highlighting and 
 ### Related Resource Trees
 
 Drill into any Deployment, StatefulSet, DaemonSet, Job, CronJob, or Node to see its child resources as an expandable tree (e.g. Deployment &rarr; ReplicaSets &rarr; Pods).
+<p align="center">
+<img width="299" height="130" alt="Screenshot 2026-02-20 at 15 13 51" src="https://github.com/user-attachments/assets/253ccbee-e781-44f3-b905-dfe437f0516f" />
+</p>
 
 ### Sortable Tables
 
