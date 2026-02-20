@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0319998C93A1E2ABDDEDD5B4 /* StatusSummaryBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5404246C054B8FCD5F6FAED9 /* StatusSummaryBar.swift */; };
 		065C65721E1972A98305DECA /* EventListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B903642CEB719144ADB31DD7 /* EventListView.swift */; };
 		0EE2737EB3B1CC885CD62F36 /* DaemonSetListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1179DB2DAAC73B2BD3461646 /* DaemonSetListView.swift */; };
 		1135D13C26D9E4328499050F /* RelatedEventsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D5BE4D2156A191385856E51 /* RelatedEventsSection.swift */; };
@@ -76,7 +75,6 @@
 		48CB054CC46B2E08766DFCA5 /* LogStreamView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogStreamView.swift; sourceTree = "<group>"; };
 		4D5BE4D2156A191385856E51 /* RelatedEventsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RelatedEventsSection.swift; sourceTree = "<group>"; };
 		538278713E8EDC540174CF9F /* JobListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobListView.swift; sourceTree = "<group>"; };
-		5404246C054B8FCD5F6FAED9 /* StatusSummaryBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusSummaryBar.swift; sourceTree = "<group>"; };
 		5997E1C67C66D520192433BE /* CronJobListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CronJobListView.swift; sourceTree = "<group>"; };
 		5C972FBB807994338604C530 /* Kamera.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Kamera.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		64EF4BD8E894BAB1872C0A53 /* PodListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodListView.swift; sourceTree = "<group>"; };
@@ -250,7 +248,6 @@
 				2C90230CFDCA98A5FB424BDF /* ResourceLink.swift */,
 				3F6D0C3FA02EA971BAEF6FAC /* ResourceTreeSection.swift */,
 				18F8410BED802B74CCD831E2 /* StatusBadge.swift */,
-				5404246C054B8FCD5F6FAED9 /* StatusSummaryBar.swift */,
 			);
 			path = Common;
 			sourceTree = "<group>";
@@ -415,7 +412,6 @@
 				2CECB8C88FF0033FADED7E67 /* SidebarView.swift in Sources */,
 				12CD608DDE046185EF37BB27 /* StatefulSetListView.swift in Sources */,
 				70C9180746A7F7F371F705CC /* StatusBadge.swift in Sources */,
-				0319998C93A1E2ABDDEDD5B4 /* StatusSummaryBar.swift in Sources */,
 				566EA90C0B3994F76F5CA9B3 /* WatchEvent.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

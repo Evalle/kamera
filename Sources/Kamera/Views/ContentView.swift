@@ -14,11 +14,6 @@ struct ContentView: View {
                 NotConnectedView()
             }
         }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            if viewModel.isConnected {
-                StatusSummaryBar()
-            }
-        }
         .overlay {
             if viewModel.isQuickSearchPresented {
                 Color.black.opacity(0.3)
