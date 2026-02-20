@@ -80,7 +80,7 @@ Click any column header to sort resource lists. Filter with the built-in search 
 
 ### Auto-Refresh
 
-Configurable auto-refresh at 15s, 30s, or 60s intervals to keep data current without manual action.
+Configurable auto-refresh at 2s, 15s, 30s, or 60s intervals (default: 2s) to keep data current without manual action.
 
 ### Authentication
 
@@ -105,7 +105,13 @@ Configurable auto-refresh at 15s, 30s, or 60s intervals to keep data current wit
 
 Grab the latest `Kamera.dmg` from the [Releases](../../releases) page, open it, and drag **Kamera.app** into **Applications**.
 
-> The app is not notarized &mdash; on first launch you may need to right-click &rarr; Open, or allow it in System Settings &rarr; Privacy & Security.
+> **Note:** The app is not signed or notarized, so macOS will block it from running by default.
+>
+> To fix this, open a terminal and run:
+> ```bash
+> xattr -dr com.apple.quarantine /Applications/Kamera.app
+> ```
+> After this the app will launch normally.
 
 ### Build from Source
 
