@@ -113,15 +113,6 @@ Grab the latest `Kamera.dmg` from the [Releases](../../releases) page, open it, 
 > ```
 > After this the app will launch normally.
 
-### Build from Source
-
-Requires **Xcode 16+** and **macOS 14.4+**.
-
-```bash
-git clone https://github.com/Evalle/kamera.git
-cd Kamera
-make dmg
-```
 
 This builds a Release `.app` and packages it into `build/Kamera.dmg`. You can also open `Kamera.xcodeproj` in Xcode and hit Run.
 
