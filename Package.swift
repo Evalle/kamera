@@ -11,7 +11,8 @@ let package = Package(
         .executableTarget(
             name: "Kamera",
             dependencies: ["Yams"],
-            path: "Sources/Kamera"
+            path: "Sources/Kamera",
+            resources: [.process("Assets.xcassets")]
         ),
         .testTarget(
             name: "KameraTests",
