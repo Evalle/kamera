@@ -28,7 +28,7 @@ Kamera connects directly to your Kubernetes clusters using your `~/.kube/config`
 
 ## Features
 
-- Tiny - only 10MB vs hundreds of MB on Electron-based analogs
+- Tiny - only 4 MB vs hundreds on Electron-based analogs
 - Super fast 
 - Open-Source, MIT License
 
