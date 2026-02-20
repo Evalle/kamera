@@ -27,7 +27,7 @@
 Kamera connects directly to your Kubernetes clusters using your `~/.kube/config` &mdash; no proxy, no browser, no Electron. It reads cluster and auth configuration natively and talks to the K8s API over HTTPS with full TLS and exec-based credential support.
 
 <p align="center">
-  <img width="1013" height="587" alt="Screenshot 2026-02-20 at 14 23 29" src="https://github.com/user-attachments/assets/e44d2183-3c43-47b3-b99e-b6c00bc64141" />
+  <img width="1103" height="702" alt="Screenshot 2026-02-20 at 14 44 33" src="https://github.com/user-attachments/assets/44acdc1c-ddcd-4208-b310-5d790d69993c" />
 </p>
 
 
