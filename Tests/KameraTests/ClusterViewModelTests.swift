@@ -253,6 +253,34 @@ final class ClusterViewModelTests: XCTestCase {
         XCTAssertEqual(tree[0].name, "pod-on-node")
     }
 
+    // MARK: - Auto-Refresh Interval Tests
+
+    func testAutoRefreshDefaultIsTwoSeconds() {
+        let vm = ClusterViewModel()
+        XCTAssertEqual(vm.autoRefreshInterval, .twoSeconds)
+        XCTAssertEqual(vm.autoRefreshInterval.rawValue, 2)
+    }
+
+    func testAutoRefreshIntervalLabels() {
+        XCTAssertEqual(ClusterViewModel.AutoRefreshInterval.off.label, "Off")
+        XCTAssertEqual(ClusterViewModel.AutoRefreshInterval.twoSeconds.label, "2s")
+        XCTAssertEqual(ClusterViewModel.AutoRefreshInterval.fifteenSeconds.label, "15s")
+        XCTAssertEqual(ClusterViewModel.AutoRefreshInterval.thirtySeconds.label, "30s")
+        XCTAssertEqual(ClusterViewModel.AutoRefreshInterval.sixtySeconds.label, "60s")
+    }
+
+    func testAutoRefreshIntervalAllCases() {
+        let allCases = ClusterViewModel.AutoRefreshInterval.allCases
+        XCTAssertEqual(allCases.count, 5)
+        XCTAssertEqual(allCases.map(\.rawValue), [0, 2, 15, 30, 60])
+    }
+
+    func testSetAutoRefreshInterval() {
+        let vm = ClusterViewModel()
+        vm.setAutoRefreshInterval(.thirtySeconds)
+        XCTAssertEqual(vm.autoRefreshInterval, .thirtySeconds)
+    }
+
     // MARK: - Misc Tests
 
     func testIsAllNamespaces() {
