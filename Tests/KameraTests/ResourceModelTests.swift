@@ -52,6 +52,103 @@ final class ResourceModelTests: XCTestCase {
         XCTAssertEqual(pod.totalRestarts, 8)
     }
 
+    // MARK: - Pod Resource Helper Tests
+
+    func testPodTotalCPURequestSingleContainer() {
+        let pod = makePodWithResources(containerSpecs: [
+            ContainerResourceSpec(cpuRequest: "500m")
+        ])
+        XCTAssertEqual(pod.totalCPURequestMillicores, 500)
+    }
+
+    func testPodTotalCPURequestMultipleContainers() {
+        let pod = makePodWithResources(containerSpecs: [
+            ContainerResourceSpec(cpuRequest: "200m"),
+            ContainerResourceSpec(cpuRequest: "300m")
+        ])
+        XCTAssertEqual(pod.totalCPURequestMillicores, 500)
+    }
+
+    func testPodTotalCPURequestPartialContainers() {
+        // Only one of two containers has a CPU request — that value is returned
+        let pod = makePodWithResources(containerSpecs: [
+            ContainerResourceSpec(cpuRequest: "250m"),
+            ContainerResourceSpec()
+        ])
+        XCTAssertEqual(pod.totalCPURequestMillicores, 250)
+    }
+
+    func testPodTotalCPURequestNilWhenNoConstraints() {
+        let pod = makePodWithResources(containerSpecs: [
+            ContainerResourceSpec(),
+            ContainerResourceSpec()
+        ])
+        XCTAssertNil(pod.totalCPURequestMillicores)
+    }
+
+    func testPodTotalCPULimitMillicores() {
+        let pod = makePodWithResources(containerSpecs: [
+            ContainerResourceSpec(cpuLimit: "1"),     // 1 core = 1000m
+            ContainerResourceSpec(cpuLimit: "500m")
+        ])
+        XCTAssertEqual(pod.totalCPULimitMillicores, 1500)
+    }
+
+    func testPodTotalMemoryRequestBytes() {
+        let pod = makePodWithResources(containerSpecs: [
+            ContainerResourceSpec(memRequest: "128Mi"),
+            ContainerResourceSpec(memRequest: "256Mi")
+        ])
+        XCTAssertEqual(pod.totalMemoryRequestBytes, (128 + 256) * 1024 * 1024)
+    }
+
+    func testPodTotalMemoryLimitBytes() {
+        let pod = makePodWithResources(containerSpecs: [
+            ContainerResourceSpec(memLimit: "512Mi")
+        ])
+        XCTAssertEqual(pod.totalMemoryLimitBytes, 512 * 1024 * 1024)
+    }
+
+    func testPodTotalMemoryNilWhenNoConstraints() {
+        let pod = makePodWithResources(containerSpecs: [ContainerResourceSpec()])
+        XCTAssertNil(pod.totalMemoryRequestBytes)
+        XCTAssertNil(pod.totalMemoryLimitBytes)
+    }
+
+    func testPodHasResourceConstraintsTrue() {
+        let pod = makePodWithResources(containerSpecs: [
+            ContainerResourceSpec(cpuRequest: "100m")
+        ])
+        XCTAssertTrue(pod.hasResourceConstraints)
+    }
+
+    func testPodHasResourceConstraintsFalseWhenNone() {
+        let pod = makePodWithResources(containerSpecs: [ContainerResourceSpec()])
+        XCTAssertFalse(pod.hasResourceConstraints)
+    }
+
+    func testPodHasResourceConstraintsTrueForLimitOnly() {
+        let pod = makePodWithResources(containerSpecs: [
+            ContainerResourceSpec(memLimit: "256Mi")
+        ])
+        XCTAssertTrue(pod.hasResourceConstraints)
+    }
+
+    func testPodNoSpecReturnsNilResources() {
+        let json = """
+        {
+            "metadata": {"name": "bare-pod", "uid": "bare-uid", "creationTimestamp": "2025-01-01T00:00:00Z"},
+            "status": {"phase": "Running"}
+        }
+        """
+        let pod: Pod = decode(json)
+        XCTAssertNil(pod.totalCPURequestMillicores)
+        XCTAssertNil(pod.totalCPULimitMillicores)
+        XCTAssertNil(pod.totalMemoryRequestBytes)
+        XCTAssertNil(pod.totalMemoryLimitBytes)
+        XCTAssertFalse(pod.hasResourceConstraints)
+    }
+
     // MARK: - Deployment Tests
 
     func testDeploymentIsAvailable() {

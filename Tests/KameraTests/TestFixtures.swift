@@ -64,6 +64,49 @@ func makePod(
     return decode(json)
 }
 
+// MARK: - Pod with Resources Fixture
+
+struct ContainerResourceSpec {
+    var cpuRequest: String? = nil
+    var cpuLimit: String? = nil
+    var memRequest: String? = nil
+    var memLimit: String? = nil
+}
+
+func makePodWithResources(
+    name: String = "test-pod",
+    namespace: String = "default",
+    uid: String = "pod-res-uid",
+    containerSpecs: [ContainerResourceSpec]
+) -> Pod {
+    let containers = containerSpecs.enumerated().map { i, spec -> String in
+        var reqParts: [String] = []
+        var limParts: [String] = []
+        if let v = spec.cpuRequest  { reqParts.append("\"cpu\": \"\(v)\"") }
+        if let v = spec.memRequest  { reqParts.append("\"memory\": \"\(v)\"") }
+        if let v = spec.cpuLimit    { limParts.append("\"cpu\": \"\(v)\"") }
+        if let v = spec.memLimit    { limParts.append("\"memory\": \"\(v)\"") }
+
+        var resourcesJSON = ""
+        if !reqParts.isEmpty || !limParts.isEmpty {
+            let req = reqParts.isEmpty ? "" : "\"requests\": {\(reqParts.joined(separator: ", "))}"
+            let lim = limParts.isEmpty ? "" : "\"limits\": {\(limParts.joined(separator: ", "))}"
+            let parts = [req, lim].filter { !$0.isEmpty }.joined(separator: ", ")
+            resourcesJSON = ", \"resources\": {\(parts)}"
+        }
+        return "{\"name\": \"container-\(i)\", \"image\": \"nginx\"\(resourcesJSON)}"
+    }.joined(separator: ", ")
+
+    let json = """
+    {
+        "metadata": {"name": "\(name)", "namespace": "\(namespace)", "uid": "\(uid)", "creationTimestamp": "2025-01-01T00:00:00Z"},
+        "spec": {"containers": [\(containers)]},
+        "status": {"phase": "Running"}
+    }
+    """
+    return decode(json)
+}
+
 // MARK: - Deployment Fixture
 
 func makeDeployment(
