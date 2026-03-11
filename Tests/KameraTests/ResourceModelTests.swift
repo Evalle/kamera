@@ -97,6 +97,35 @@ final class ResourceModelTests: XCTestCase {
         XCTAssertEqual(job.completionCount, "2/3")
     }
 
+    // MARK: - Quantity Parser Tests
+
+    func testParseMillicores() {
+        XCTAssertEqual(parseMillicores("750m"), 750)
+        XCTAssertEqual(parseMillicores("1500000000n"), 1500)
+        XCTAssertEqual(parseMillicores("2"), 2000)
+        XCTAssertNil(parseMillicores(nil))
+    }
+
+    func testParseMemoryBytes() {
+        XCTAssertEqual(parseMemoryBytes("512Ki"), 524288)
+        XCTAssertEqual(parseMemoryBytes("256Mi"), 268435456)
+        XCTAssertEqual(parseMemoryBytes("1Gi"),   1073741824)
+        XCTAssertNil(parseMemoryBytes(nil))
+    }
+
+    func testFormatMillicores() {
+        XCTAssertEqual(formatMillicores(750), "750m")
+        XCTAssertEqual(formatMillicores(1000), "1")
+        XCTAssertEqual(formatMillicores(1500), "1.5")
+        XCTAssertEqual(formatMillicores(2000), "2")
+    }
+
+    func testFormatBytes() {
+        XCTAssertEqual(formatBytes(524288), "512Ki")
+        XCTAssertEqual(formatBytes(1073741824), "1Gi")
+        XCTAssertEqual(formatBytes(512), "512B")
+    }
+
     // MARK: - Node Tests
 
     func testNodeIsReady() {

@@ -281,6 +281,49 @@ final class ClusterViewModelTests: XCTestCase {
         XCTAssertEqual(vm.autoRefreshInterval, .thirtySeconds)
     }
 
+    // MARK: - Metrics Lookup Tests
+
+    func testPodMetricsLookup() {
+        let vm = ClusterViewModel()
+        vm.podMetrics = [
+            makePodMetrics(name: "nginx", namespace: "default", cpuMillicores: 100, memoryKi: 512),
+            makePodMetrics(name: "redis", namespace: "default", cpuMillicores: 50, memoryKi: 256),
+            makePodMetrics(name: "nginx", namespace: "other", cpuMillicores: 200, memoryKi: 1024),
+        ]
+        let pod = makePod(name: "nginx", namespace: "default", uid: "p1")
+        let m = vm.metrics(for: pod)
+        XCTAssertNotNil(m)
+        XCTAssertEqual(m?.totalCPUMillicores, 100)
+    }
+
+    func testPodMetricsLookupNamespaceSeparation() {
+        let vm = ClusterViewModel()
+        vm.podMetrics = [
+            makePodMetrics(name: "nginx", namespace: "other", cpuMillicores: 999, memoryKi: 999),
+        ]
+        let pod = makePod(name: "nginx", namespace: "default", uid: "p1")
+        XCTAssertNil(vm.metrics(for: pod))
+    }
+
+    func testNodeMetricsLookup() {
+        let vm = ClusterViewModel()
+        vm.nodeMetrics = [
+            makeNodeMetrics(name: "worker-1", cpuMillicores: 800, memoryKi: 4096),
+            makeNodeMetrics(name: "worker-2", cpuMillicores: 400, memoryKi: 2048),
+        ]
+        let node = makeNode(name: "worker-1", uid: "n1")
+        let m = vm.metrics(for: node)
+        XCTAssertNotNil(m)
+        XCTAssertEqual(m?.cpuMillicores, 800)
+    }
+
+    func testNodeMetricsLookupMissing() {
+        let vm = ClusterViewModel()
+        vm.nodeMetrics = []
+        let node = makeNode(name: "worker-1", uid: "n1")
+        XCTAssertNil(vm.metrics(for: node))
+    }
+
     // MARK: - Misc Tests
 
     func testIsAllNamespaces() {

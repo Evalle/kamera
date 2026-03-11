@@ -38,6 +38,11 @@ final class ClusterViewModel {
     var persistentVolumeClaims: [PersistentVolumeClaim] = []
     var events: [Event] = []
 
+    // Metrics data
+    var podMetrics: [PodMetrics] = []
+    var nodeMetrics: [NodeMetrics] = []
+    var metricsAvailable = false
+
     // UI state
     var selectedResource: ResourceKind = .pods
     var isLoading = false
@@ -236,6 +241,8 @@ final class ClusterViewModel {
         let ns = selectedNamespace
         let nsParam: String? = ns.isEmpty ? nil : ns
 
+        async let metricsResult = fetchMetrics(using: client, nsParam: nsParam)
+
         do {
             // Fetch all resource types in parallel
             async let fPods = client.list(Pod.self, namespace: nsParam)
@@ -284,6 +291,32 @@ final class ClusterViewModel {
             resourceError = error.localizedDescription
             isLoading = false
         }
+
+        let (pm, nm) = await metricsResult
+        podMetrics       = pm
+        nodeMetrics      = nm
+        metricsAvailable = !pm.isEmpty || !nm.isEmpty
+    }
+
+    private func fetchMetrics(
+        using client: KubernetesClient,
+        nsParam: String?
+    ) async -> ([PodMetrics], [NodeMetrics]) {
+        async let fPm = client.list(PodMetrics.self, namespace: nsParam)
+        async let fNm = client.list(NodeMetrics.self, namespace: nil)
+        let pm = (try? await fPm) ?? []
+        let nm = (try? await fNm) ?? []
+        return (pm, nm)
+    }
+
+    // MARK: - Metrics Lookup
+
+    func metrics(for pod: Pod) -> PodMetrics? {
+        podMetrics.first { $0.name == pod.name && $0.namespace == pod.namespace }
+    }
+
+    func metrics(for node: Node) -> NodeMetrics? {
+        nodeMetrics.first { $0.name == node.name }
     }
 
     // MARK: - Watch Pods

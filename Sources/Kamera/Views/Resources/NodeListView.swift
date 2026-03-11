@@ -46,6 +46,20 @@ struct NodeListView: View {
                     Text(formatAge(from: node.metadata.creationTimestamp))
                 }
                 .width(50)
+
+                if viewModel.metricsAvailable {
+                    TableColumn("CPU") { node in
+                        Text(viewModel.metrics(for: node).map { formatMillicores($0.cpuMillicores) } ?? "-")
+                            .monospacedDigit()
+                    }
+                    .width(60)
+
+                    TableColumn("Memory") { node in
+                        Text(viewModel.metrics(for: node).map { formatBytes($0.memoryBytes) } ?? "-")
+                            .monospacedDigit()
+                    }
+                    .width(70)
+                }
             }
             .frame(minWidth: 400)
 
@@ -112,6 +126,25 @@ struct NodeDetailPanel: View {
                             DetailRow(label: "CPU", value: capacity["cpu"] ?? "-")
                             DetailRow(label: "Memory", value: capacity["memory"] ?? "-")
                             DetailRow(label: "Pods", value: capacity["pods"] ?? "-")
+                        }
+                    }
+
+                    if viewModel.metricsAvailable, let m = viewModel.metrics(for: node) {
+                        let allocCPU = parseMillicores(node.status?.allocatable?["cpu"]) ?? 1
+                        let allocMem = parseMemoryBytes(node.status?.allocatable?["memory"]) ?? 1
+                        DetailSection(title: "Usage") {
+                            MetricsBar(
+                                label: "CPU",
+                                usedText: formatMillicores(m.cpuMillicores),
+                                totalText: formatMillicores(allocCPU),
+                                fraction: min(1.0, Double(m.cpuMillicores) / Double(allocCPU))
+                            )
+                            MetricsBar(
+                                label: "Memory",
+                                usedText: formatBytes(m.memoryBytes),
+                                totalText: formatBytes(allocMem),
+                                fraction: min(1.0, Double(m.memoryBytes) / Double(allocMem))
+                            )
                         }
                     }
 

@@ -917,3 +917,105 @@ private func abbreviateAccessMode(_ mode: String) -> String {
     default: return mode
     }
 }
+
+// MARK: - Metrics Models
+
+struct ResourceQuantities: Decodable {
+    let cpu: String?    // e.g. "123m", "1500000000n", "2"
+    let memory: String? // e.g. "512Ki", "256Mi", "1Gi"
+}
+
+struct ContainerMetrics: Decodable {
+    let name: String
+    let usage: ResourceQuantities
+}
+
+struct PodMetrics: KubernetesResource {
+    static let apiPath = "/apis/metrics.k8s.io/v1beta1"
+    static let kind    = "pods"
+    let metadata: ObjectMetadata
+    let containers: [ContainerMetrics]
+
+    var totalCPUMillicores: Int {
+        containers.compactMap { parseMillicores($0.usage.cpu) }.reduce(0, +)
+    }
+    var totalMemoryBytes: Int64 {
+        containers.compactMap { parseMemoryBytes($0.usage.memory) }.reduce(0, +)
+    }
+}
+
+struct NodeMetrics: KubernetesResource {
+    static let apiPath = "/apis/metrics.k8s.io/v1beta1"
+    static let kind    = "nodes"
+    let metadata: ObjectMetadata
+    let usage: ResourceQuantities
+
+    var cpuMillicores: Int   { parseMillicores(usage.cpu) ?? 0 }
+    var memoryBytes:   Int64 { parseMemoryBytes(usage.memory) ?? 0 }
+}
+
+// MARK: - Quantity Parsers & Formatters
+
+func parseMillicores(_ s: String?) -> Int? {
+    guard let s = s else { return nil }
+    if s.hasSuffix("m") {
+        return Int(s.dropLast())
+    } else if s.hasSuffix("n") {
+        guard let n = Int64(s.dropLast()) else { return nil }
+        return Int(n / 1_000_000)
+    } else if let cores = Double(s) {
+        return Int(cores * 1000)
+    }
+    return nil
+}
+
+func parseMemoryBytes(_ s: String?) -> Int64? {
+    guard let s = s else { return nil }
+    let suffixes: [(String, Int64)] = [
+        ("Ki", 1024),
+        ("Mi", 1024 * 1024),
+        ("Gi", 1024 * 1024 * 1024),
+        ("Ti", 1024 * 1024 * 1024 * 1024),
+        ("K", 1000),
+        ("M", 1000 * 1000),
+        ("G", 1000 * 1000 * 1000),
+        ("T", 1000 * 1000 * 1000 * 1000),
+    ]
+    for (suffix, multiplier) in suffixes {
+        if s.hasSuffix(suffix) {
+            guard let value = Int64(s.dropLast(suffix.count)) else { return nil }
+            return value * multiplier
+        }
+    }
+    return Int64(s)
+}
+
+func formatMillicores(_ m: Int) -> String {
+    if m < 1000 {
+        return "\(m)m"
+    }
+    let cores = Double(m) / 1000.0
+    if cores == Double(Int(cores)) {
+        return "\(Int(cores))"
+    }
+    return String(format: "%.1f", cores)
+}
+
+func formatBytes(_ b: Int64) -> String {
+    let units: [(String, Int64)] = [
+        ("Ti", 1024 * 1024 * 1024 * 1024),
+        ("Gi", 1024 * 1024 * 1024),
+        ("Mi", 1024 * 1024),
+        ("Ki", 1024),
+    ]
+    for (suffix, divisor) in units {
+        if b >= divisor {
+            let value = Double(b) / Double(divisor)
+            if value == Double(Int(value)) {
+                return "\(Int(value))\(suffix)"
+            }
+            return String(format: "%.1f", value) + suffix
+        }
+    }
+    return "\(b)B"
+}

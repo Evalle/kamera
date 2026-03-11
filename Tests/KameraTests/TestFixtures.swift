@@ -203,6 +203,41 @@ func makeReplicaSet(
     return decode(json)
 }
 
+// MARK: - PodMetrics Fixture
+
+func makePodMetrics(
+    name: String = "test-pod",
+    namespace: String = "default",
+    cpuMillicores: Int = 100,
+    memoryKi: Int = 512
+) -> PodMetrics {
+    let json = """
+    {
+        "metadata": {"name": "\(name)", "namespace": "\(namespace)", "creationTimestamp": "2025-01-01T00:00:00Z"},
+        "containers": [
+            {"name": "main", "usage": {"cpu": "\(cpuMillicores)m", "memory": "\(memoryKi)Ki"}}
+        ]
+    }
+    """
+    return decode(json)
+}
+
+// MARK: - NodeMetrics Fixture
+
+func makeNodeMetrics(
+    name: String = "test-node",
+    cpuMillicores: Int = 500,
+    memoryKi: Int = 2048
+) -> NodeMetrics {
+    let json = """
+    {
+        "metadata": {"name": "\(name)", "creationTimestamp": "2025-01-01T00:00:00Z"},
+        "usage": {"cpu": "\(cpuMillicores)m", "memory": "\(memoryKi)Ki"}
+    }
+    """
+    return decode(json)
+}
+
 // MARK: - CronJob Fixture
 
 func makeCronJob(

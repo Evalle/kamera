@@ -46,6 +46,7 @@
 		F34FDBF80D6817DBD7DAC430 /* DeploymentListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42943B93D45B9AFB87F4B0B7 /* DeploymentListView.swift */; };
 		F7A1B2C3D4E5F60718293A4B /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6071829304A5B /* SettingsView.swift */; };
 		B2A1C3D4E5F6071829304A5C /* ShellHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3B2D4E5F6071829304A5B6C /* ShellHelper.swift */; };
+		DECAFBAD0001DEAD0001BEEF /* MetricsBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEEDC0DE0001DEAD0001ABCD /* MetricsBar.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -99,6 +100,7 @@
 		EE2B9398DE363D23BA2912C9 /* KubernetesClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KubernetesClient.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F6071829304A5B /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		C3B2D4E5F6071829304A5B6C /* ShellHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellHelper.swift; sourceTree = "<group>"; };
+		FEEDC0DE0001DEAD0001ABCD /* MetricsBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricsBar.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -242,6 +244,7 @@
 		AE1697768818AC901BCAEB4A /* Common */ = {
 			isa = PBXGroup;
 			children = (
+				FEEDC0DE0001DEAD0001ABCD /* MetricsBar.swift */,
 				886D091D9F917FE045F7C1DA /* QuickSearchView.swift */,
 				A00FEF55F3D3CDAA6B0384AA /* RawResourceView.swift */,
 				4D5BE4D2156A191385856E51 /* RelatedEventsSection.swift */,
@@ -394,6 +397,7 @@
 				AA3633527383C72B3FF35EEE /* KubeConfig.swift in Sources */,
 				88CC2F0042AB8B9F50E6BA63 /* KubernetesClient.swift in Sources */,
 				AF3CBD56E4EB908BFEF58A3C /* LogStreamView.swift in Sources */,
+				DECAFBAD0001DEAD0001BEEF /* MetricsBar.swift in Sources */,
 				F21F46FA921D5546E7F88204 /* NodeListView.swift in Sources */,
 				E2B0B4B4B9CC4F9F493112A7 /* PersistentVolumeClaimListView.swift in Sources */,
 				CFB1A77BFD594B54A2B82965 /* PersistentVolumeListView.swift in Sources */,

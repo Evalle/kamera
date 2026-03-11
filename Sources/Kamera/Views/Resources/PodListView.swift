@@ -101,7 +101,30 @@ struct PodListView: View {
                     .foregroundStyle(.secondary)
             }
             .width(min: 80, ideal: 120)
+
+            if viewModel.metricsAvailable {
+                TableColumn("CPU") { pod in
+                    let m = viewModel.metrics(for: pod)
+                    Text(m.map { formatMillicores($0.totalCPUMillicores) } ?? "-")
+                        .monospacedDigit()
+                        .foregroundStyle(podCPUColor(m?.totalCPUMillicores))
+                }
+                .width(60)
+
+                TableColumn("Memory") { pod in
+                    Text(viewModel.metrics(for: pod).map { formatBytes($0.totalMemoryBytes) } ?? "-")
+                        .monospacedDigit()
+                }
+                .width(70)
+            }
         }
+    }
+
+    private func podCPUColor(_ milliCores: Int?) -> Color {
+        guard let m = milliCores else { return .primary }
+        if m > 1800 { return .red }
+        if m > 800 { return .orange }
+        return .primary
     }
 }
 
