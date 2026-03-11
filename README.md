@@ -97,6 +97,7 @@ When [metrics-server](https://github.com/kubernetes-sigs/metrics-server) is inst
 - **Pod list** — CPU and Memory columns with colour-coded CPU (orange > 800m, red > 1800m)
 - **Node list** — CPU and Memory columns per node
 - **Node detail** — Usage section with progress bars showing used vs allocatable for both CPU and memory
+- **Pod detail** — Resources section with progress bars for CPU and Memory; shows used vs request when metrics are available, or request vs limit when they are not
 
 Clusters without metrics-server degrade gracefully — the columns are simply hidden with no errors.
 
