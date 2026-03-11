@@ -133,6 +133,7 @@ struct PodListView: View {
 struct PodDetailPanel: View {
     let pod: Pod
     @Binding var showLogs: Bool
+    @Environment(ClusterViewModel.self) private var viewModel
     @State private var detailTab: DetailTab = .overview
 
     var body: some View {
@@ -200,6 +201,29 @@ struct PodDetailPanel: View {
                         }
                     }
 
+                    // Resources
+                    let podMetrics = viewModel.metrics(for: pod)
+                    if pod.hasResourceConstraints || podMetrics != nil {
+                        DetailSection(title: "Resources") {
+                            PodResourceRow(
+                                label: "CPU",
+                                used:    podMetrics.map { Double($0.totalCPUMillicores) },
+                                request: pod.totalCPURequestMillicores.map(Double.init),
+                                limit:   pod.totalCPULimitMillicores.map(Double.init),
+                                formatUsed:     { formatMillicores(Int($0)) },
+                                formatCapacity: { formatMillicores(Int($0)) }
+                            )
+                            PodResourceRow(
+                                label: "Memory",
+                                used:    podMetrics.map { Double($0.totalMemoryBytes) },
+                                request: pod.totalMemoryRequestBytes.map(Double.init),
+                                limit:   pod.totalMemoryLimitBytes.map(Double.init),
+                                formatUsed:     { formatBytes(Int64($0)) },
+                                formatCapacity: { formatBytes(Int64($0)) }
+                            )
+                        }
+                    }
+
                     // Owner References
                     if let owners = pod.metadata.ownerReferences, !owners.isEmpty {
                         DetailSection(title: "Owner References") {
@@ -241,6 +265,56 @@ struct PodDetailPanel: View {
         }
         .sheet(isPresented: $showLogs) {
             LogStreamView(podName: pod.name, containers: pod.spec?.containers ?? [])
+        }
+    }
+}
+
+// MARK: - Pod Resource Row
+
+private struct PodResourceRow: View {
+    let label: String
+    let used: Double?
+    let request: Double?
+    let limit: Double?
+    let formatUsed: (Double) -> String
+    let formatCapacity: (Double) -> String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            if let used, let req = request, req > 0 {
+                // Metrics available: bar = used / request
+                MetricsBar(
+                    label: label,
+                    usedText: formatUsed(used),
+                    totalText: "\(formatCapacity(req)) req",
+                    fraction: min(1.0, used / req)
+                )
+                if let lim = limit {
+                    Text("Limit: \(formatCapacity(lim))")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .padding(.leading, 104)
+                }
+            } else if let req = request, let lim = limit, lim > 0 {
+                // No metrics, both req + limit: bar = request / limit
+                MetricsBar(
+                    label: label,
+                    usedText: "\(formatCapacity(req)) req",
+                    totalText: "\(formatCapacity(lim)) lim",
+                    fraction: min(1.0, req / lim)
+                )
+            } else {
+                // Fallback: plain text rows
+                if let req = request {
+                    DetailRow(label: "\(label) Request", value: formatCapacity(req))
+                }
+                if let lim = limit {
+                    DetailRow(label: "\(label) Limit", value: formatCapacity(lim))
+                }
+                if let u = used {
+                    DetailRow(label: "\(label) Used", value: formatUsed(u))
+                }
+            }
         }
     }
 }

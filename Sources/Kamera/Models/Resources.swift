@@ -674,6 +674,31 @@ extension Pod {
     }
 }
 
+// MARK: - Pod Resource Helpers
+
+extension Pod {
+    var totalCPURequestMillicores: Int? {
+        let vals = spec?.containers?.compactMap { parseMillicores($0.resources?.requests?["cpu"]) } ?? []
+        return vals.isEmpty ? nil : vals.reduce(0, +)
+    }
+    var totalCPULimitMillicores: Int? {
+        let vals = spec?.containers?.compactMap { parseMillicores($0.resources?.limits?["cpu"]) } ?? []
+        return vals.isEmpty ? nil : vals.reduce(0, +)
+    }
+    var totalMemoryRequestBytes: Int64? {
+        let vals = spec?.containers?.compactMap { parseMemoryBytes($0.resources?.requests?["memory"]) } ?? []
+        return vals.isEmpty ? nil : vals.reduce(0, +)
+    }
+    var totalMemoryLimitBytes: Int64? {
+        let vals = spec?.containers?.compactMap { parseMemoryBytes($0.resources?.limits?["memory"]) } ?? []
+        return vals.isEmpty ? nil : vals.reduce(0, +)
+    }
+    var hasResourceConstraints: Bool {
+        totalCPURequestMillicores != nil || totalCPULimitMillicores != nil ||
+        totalMemoryRequestBytes   != nil || totalMemoryLimitBytes   != nil
+    }
+}
+
 // MARK: - Deployment Helpers
 
 extension Deployment {
