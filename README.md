@@ -90,6 +90,16 @@ View the full YAML/JSON definition of any resource with syntax highlighting and 
   <img width="447" height="624" alt="Screenshot 2026-02-20 at 14 27 08" src="https://github.com/user-attachments/assets/46c09cd6-99e5-4116-af5c-79faaaaa1f4e" />
 </p>
 
+### CPU & Memory Metrics
+
+When [metrics-server](https://github.com/kubernetes-sigs/metrics-server) is installed in the cluster, Kamera automatically shows live CPU and Memory usage:
+
+- **Pod list** — CPU and Memory columns with colour-coded CPU (orange > 800m, red > 1800m)
+- **Node list** — CPU and Memory columns per node
+- **Node detail** — Usage section with progress bars showing used vs allocatable for both CPU and memory
+
+Clusters without metrics-server degrade gracefully — the columns are simply hidden with no errors.
+
 ### Related Resource Trees
 
 Drill into any Deployment, StatefulSet, DaemonSet, Job, CronJob, or Node to see its child resources as an expandable tree (e.g. Deployment &rarr; ReplicaSets &rarr; Pods).
