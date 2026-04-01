@@ -12,7 +12,7 @@ jobs:
   build:
     runs-on: macos-15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.3.1
 
       - name: Install XcodeGen
         run: brew install xcodegen
@@ -21,7 +21,7 @@ jobs:
         run: make dmg
 
       - name: Create Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v2.6.1
         with:
           files: build/Kamera.dmg
           generate_release_notes: true
