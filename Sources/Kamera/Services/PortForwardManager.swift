@@ -83,7 +83,10 @@ final class PortForwardManager {
             status: .starting
         ))
 
-        let kubectlPath = await findKubectl()
+        guard let kubectlPath = await findKubectl() else {
+            setStatus(id: id, status: .failed("kubectl not found. Install it with: brew install kubectl"))
+            return
+        }
 
         let process = Process()
         process.executableURL = URL(fileURLWithPath: kubectlPath)
@@ -169,8 +172,9 @@ final class PortForwardManager {
         forwards[idx].status = status
     }
 
-    private nonisolated func findKubectl() async -> String {
-        await withCheckedContinuation { continuation in
+    private nonisolated func findKubectl() async -> String? {
+        // 1. Ask the login shell — respects the user's PATH (e.g. asdf, mise, nix)
+        let shellPath: String? = await withCheckedContinuation { continuation in
             let process = Process()
             process.executableURL = Shell.loginShellURL
             process.arguments = ["-l", "-c", "which kubectl"]
@@ -184,13 +188,20 @@ final class PortForwardManager {
                     let data = pipe.fileHandleForReading.readDataToEndOfFile()
                     let path = String(data: data, encoding: .utf8)?
                         .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-                    if !path.isEmpty {
-                        continuation.resume(returning: path)
-                        return
-                    }
+                    continuation.resume(returning: path.isEmpty ? nil : path)
+                    return
                 }
             } catch {}
-            continuation.resume(returning: "/usr/local/bin/kubectl")
+            continuation.resume(returning: nil)
         }
+        if let path = shellPath { return path }
+
+        // 2. Common install locations as fallback
+        let candidates = [
+            "/opt/homebrew/bin/kubectl",  // Homebrew on Apple Silicon
+            "/usr/local/bin/kubectl",     // Homebrew on Intel
+            "/usr/bin/kubectl",
+        ]
+        return candidates.first { FileManager.default.fileExists(atPath: $0) }
     }
 }
