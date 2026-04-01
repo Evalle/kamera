@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(ClusterViewModel.self) private var viewModel
+    @AppStorage("appearanceMode") private var appearanceMode: AppearanceMode = .system
     @State private var showFileImporter = false
 
     private var resolvedDefault: String {
@@ -10,6 +11,15 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
+            Section("Appearance") {
+                Picker("Theme", selection: $appearanceMode) {
+                    ForEach(AppearanceMode.allCases, id: \.self) { mode in
+                        Text(mode.label).tag(mode)
+                    }
+                }
+                .pickerStyle(.segmented)
+            }
+
             Section("Kubeconfig") {
                 LabeledContent("Path") {
                     HStack {
