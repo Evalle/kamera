@@ -167,7 +167,7 @@ struct PortForwardStartSheet: View {
             HStack {
                 Image(systemName: "arrow.left.arrow.right.circle.fill")
                     .font(.title2)
-                    .foregroundStyle(.accent)
+                    .foregroundStyle(.tint)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Port Forward")
                         .font(.headline)

@@ -274,9 +274,9 @@ struct PodDetailPanel: View {
             LogStreamView(podName: pod.name, containers: pod.spec?.containers ?? [])
         }
         .sheet(isPresented: $showPortForward) {
-            let ports = pod.spec?.containers
+            let ports = (pod.spec?.containers ?? [])
                 .flatMap { $0.ports ?? [] }
-                .map { $0.containerPort } ?? []
+                .map { $0.containerPort }
             PortForwardStartSheet(
                 resourceType: .pod,
                 resourceName: pod.name,

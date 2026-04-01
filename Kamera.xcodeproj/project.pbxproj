@@ -24,6 +24,7 @@
 		6140D2B2B8075E3E1C271E16 /* ClusterViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67DE851EF75BA9BF3125D7E9 /* ClusterViewModelTests.swift */; };
 		664BF7AD1BD916500ECF6CC1 /* ShellHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2904C347DBDC9381BCE5BB3D /* ShellHelper.swift */; };
 		70C9180746A7F7F371F705CC /* StatusBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18F8410BED802B74CCD831E2 /* StatusBadge.swift */; };
+		7A2CB4B7866F7E0CF2781732 /* PortForwardManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C30EEEE7198CBDC3A1AE5A34 /* PortForwardManagerTests.swift */; };
 		802C097E369DF2C468AECDB0 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BEC9A48D90272C37BE1C562 /* App.swift */; };
 		845CA363FFD05BC213EBA7DF /* MetricsBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30F6E8611D122A0E4CC751D3 /* MetricsBar.swift */; };
 		87B8C62A9851CA2D3AD97063 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 31E893B029B3B2A3FBF993E7 /* Assets.xcassets */; };
@@ -99,6 +100,7 @@
 		B146C77018DD1D2B281053D2 /* TestFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestFixtures.swift; sourceTree = "<group>"; };
 		B903642CEB719144ADB31DD7 /* EventListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventListView.swift; sourceTree = "<group>"; };
 		C0E73596638C05B4A9C07A22 /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
+		C30EEEE7198CBDC3A1AE5A34 /* PortForwardManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortForwardManagerTests.swift; sourceTree = "<group>"; };
 		C8D0DE00CF8B338EE113B6F7 /* SecretListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecretListView.swift; sourceTree = "<group>"; };
 		D11151C102E9F7A6159FD131 /* Resources.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Resources.swift; sourceTree = "<group>"; };
 		D2E90BFCCCBA7026D2BC59ED /* KubeConfigTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KubeConfigTests.swift; sourceTree = "<group>"; };
@@ -266,6 +268,7 @@
 			children = (
 				67DE851EF75BA9BF3125D7E9 /* ClusterViewModelTests.swift */,
 				D2E90BFCCCBA7026D2BC59ED /* KubeConfigTests.swift */,
+				C30EEEE7198CBDC3A1AE5A34 /* PortForwardManagerTests.swift */,
 				A9C33820F0C58BEE282FA7E3 /* ResourceModelTests.swift */,
 				B146C77018DD1D2B281053D2 /* TestFixtures.swift */,
 			);
@@ -442,6 +445,7 @@
 			files = (
 				6140D2B2B8075E3E1C271E16 /* ClusterViewModelTests.swift in Sources */,
 				5BC37107A02B279AEC19C764 /* KubeConfigTests.swift in Sources */,
+				7A2CB4B7866F7E0CF2781732 /* PortForwardManagerTests.swift in Sources */,
 				D766EEDB68FC9DD3DAA3E07E /* ResourceModelTests.swift in Sources */,
 				8D65BBBB339C530ECA50A656 /* TestFixtures.swift in Sources */,
 			);
