@@ -124,6 +124,7 @@ final class ClusterViewModel {
         case persistentVolumeClaims = "PersistentVolumeClaims"
         case nodes = "Nodes"
         case events = "Events"
+        case portForwards = "Port Forwards"
 
         var id: String { rawValue }
 
@@ -144,6 +145,7 @@ final class ClusterViewModel {
             case .persistentVolumeClaims: return "cylinder.split.1x2"
             case .nodes: return "server.rack"
             case .events: return "exclamationmark.bubble"
+            case .portForwards: return "arrow.left.arrow.right.circle"
             }
         }
     }

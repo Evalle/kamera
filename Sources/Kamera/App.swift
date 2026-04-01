@@ -3,11 +3,13 @@ import SwiftUI
 @main
 struct KameraApp: App {
     @State private var viewModel = ClusterViewModel()
+    @State private var portForwardManager = PortForwardManager()
 
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environment(viewModel)
+                .environment(portForwardManager)
                 .frame(minWidth: 800, minHeight: 500)
         }
         .commands {
@@ -43,6 +45,7 @@ struct KameraApp: App {
         Settings {
             SettingsView()
                 .environment(viewModel)
+                .environment(portForwardManager)
         }
     }
 }

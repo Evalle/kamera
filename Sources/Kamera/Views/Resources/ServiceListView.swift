@@ -90,6 +90,8 @@ struct ServiceListView: View {
 struct ServiceDetailPanel: View {
     let service: Service
     @State private var detailTab: DetailTab = .overview
+    @State private var portForwardPort: Int?
+    @State private var showPortForwardSheet = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -133,6 +135,15 @@ struct ServiceDetailPanel: View {
                                     Text(port.protocol ?? "TCP")
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
+                                    Spacer()
+                                    Button {
+                                        portForwardPort = port.port
+                                        showPortForwardSheet = true
+                                    } label: {
+                                        Image(systemName: "arrow.left.arrow.right.circle")
+                                    }
+                                    .buttonStyle(.borderless)
+                                    .help("Port forward \(port.port)")
                                 }
                                 .font(.callout)
                             }
@@ -162,6 +173,14 @@ struct ServiceDetailPanel: View {
             }
             }
         }
+        .sheet(isPresented: $showPortForwardSheet) {
+            PortForwardStartSheet(
+                resourceType: .service,
+                resourceName: service.name,
+                namespace: service.namespace ?? "default",
+                suggestedPorts: portForwardPort.map { [$0] } ?? []
+            )
+        }
     }
 
     private func targetPortString(_ targetPort: TargetPort?) -> String {
@@ -172,3 +191,4 @@ struct ServiceDetailPanel: View {
         }
     }
 }
+

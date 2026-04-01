@@ -581,6 +581,7 @@ extension ClusterViewModel.ResourceKind {
         case .persistentVolumes: return "PersistentVolume"
         case .persistentVolumeClaims: return "PersistentVolumeClaim"
         case .events: return "Event"
+        case .portForwards: return ""
         }
     }
 

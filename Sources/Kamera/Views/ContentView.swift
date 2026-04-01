@@ -57,6 +57,7 @@ struct ResourceDetailView: View {
             case .persistentVolumeClaims: PersistentVolumeClaimListView()
             case .nodes: NodeListView()
             case .events: EventListView()
+            case .portForwards: PortForwardsView()
             }
         }
         .overlay {

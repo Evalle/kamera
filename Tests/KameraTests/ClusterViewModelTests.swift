@@ -337,6 +337,7 @@ final class ClusterViewModelTests: XCTestCase {
     func testResourceKindRoundTrip() {
         for kind in ClusterViewModel.ResourceKind.allCases {
             let k8sKind = kind.kubernetesKind
+            guard !k8sKind.isEmpty else { continue } // skip non-K8s entries (e.g. portForwards)
             let roundTripped = ClusterViewModel.ResourceKind.from(kubernetesKind: k8sKind)
             XCTAssertEqual(roundTripped, kind, "Round-trip failed for \(kind)")
         }

@@ -135,6 +135,7 @@ struct PodDetailPanel: View {
     @Binding var showLogs: Bool
     @Environment(ClusterViewModel.self) private var viewModel
     @State private var detailTab: DetailTab = .overview
+    @State private var showPortForward = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -150,6 +151,12 @@ struct PodDetailPanel: View {
                         Text(pod.name)
                             .font(.headline)
                         Spacer()
+                        Button {
+                            showPortForward = true
+                        } label: {
+                            Label("Port Forward", systemImage: "arrow.left.arrow.right.circle")
+                        }
+                        .buttonStyle(.bordered)
                         Button {
                             showLogs = true
                         } label: {
@@ -265,6 +272,17 @@ struct PodDetailPanel: View {
         }
         .sheet(isPresented: $showLogs) {
             LogStreamView(podName: pod.name, containers: pod.spec?.containers ?? [])
+        }
+        .sheet(isPresented: $showPortForward) {
+            let ports = pod.spec?.containers
+                .flatMap { $0.ports ?? [] }
+                .map { $0.containerPort } ?? []
+            PortForwardStartSheet(
+                resourceType: .pod,
+                resourceName: pod.name,
+                namespace: pod.namespace ?? viewModel.selectedNamespace,
+                suggestedPorts: ports
+            )
         }
     }
 }

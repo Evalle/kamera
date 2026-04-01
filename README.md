@@ -101,6 +101,19 @@ When [metrics-server](https://github.com/kubernetes-sigs/metrics-server) is inst
 
 Clusters without metrics-server degrade gracefully — the columns are simply hidden with no errors.
 
+### Port Forwarding
+
+Forward any pod or service port to your local machine with one click — no terminal required.
+
+- Open any **Pod** or **Service** detail panel and click the **Port Forward** button (pod header) or the arrow icon next to a port row (service ports)
+- A sheet pre-fills the remote port from the resource; set your desired local port and click **Start Forward**
+- Active forwards appear in the **Port Forwards** section in the sidebar, with a live status indicator:
+  - **Spinning** — connecting
+  - **Green dot** — active and ready
+  - **Red dot** — failed (error message shown inline)
+- Click the **Safari icon** next to an active forward to open `http://localhost:<port>` in your browser
+- Stop individual forwards with the **×** button, or use **Stop All** from the toolbar
+
 ### Related Resource Trees
 
 Drill into any Deployment, StatefulSet, DaemonSet, Job, CronJob, or Node to see its child resources as an expandable tree (e.g. Deployment &rarr; ReplicaSets &rarr; Pods).

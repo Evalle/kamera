@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SidebarView: View {
     @Environment(ClusterViewModel.self) private var viewModel
+    @Environment(PortForwardManager.self) private var portForwardManager
 
     var body: some View {
         @Bindable var vm = viewModel
@@ -85,7 +86,9 @@ struct SidebarView: View {
                     sidebarItem(.events, "Events", viewModel.events.count)
                 }
 
-
+                Section("Local") {
+                    sidebarItem(.portForwards, "Port Forwards", portForwardManager.forwards.count)
+                }
             }
             .listStyle(.sidebar)
         } // end VStack
